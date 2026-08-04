@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>经济系统 · Blue Shark</title>
+<meta name="description" content="Blue Shark 的动态经济系统：跟服务器买与卖、动态价格、/pay 玩家间转账，以及预留 API 的未来独立市场插件。">
+<link rel="icon" type="image/jpeg" href="../images/server-icon.jpg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Noto+Sans+SC:wght@400;500;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/theme.css">
+</head>
+<body>
+
+<nav class="site-nav">
+  <div class="nav-inner wrap">
+    <a class="brand" href="../index.html"><img src="../images/server-icon.jpg" alt="Blue Shark 图标">BLUE&nbsp;SHARK</a>
+    <div class="nav-links">
+      <a href="../index.html">主页</a>
+      <a href="../map/index.html">地图</a>
+      <a href="../members/index.html">成员</a>
+      <a href="index.html" class="active">经济</a>
+      <a href="../mods/index.html">模组</a>
+    </div>
+  </div>
+</nav>
+
+<div class="toc">
+  <div class="toc-inner">
+    <a href="#intro">经济简介</a>
+    <a href="#shop">动态商店</a>
+    <a href="#transfer">玩家转账</a>
+    <a href="#future">未来市场</a>
+  </div>
+</div>
+
+<header class="page-hero">
+  <div class="bubbles" aria-hidden="true"></div>
+  <div class="wrap">
+    <div class="icon-big">💰</div>
+    <h1>经济系统</h1>
+    <p>一套简单但灵活的服务器经济——跟服务器买卖、动态价格、玩家间转账。</p>
+  </div>
+</header>
+
+<!-- 简介 -->
+<section id="intro" class="sec-mid">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <span class="eyebrow">OVERVIEW</span>
+      <h2>经济简介</h2>
+      <p>一片海里的"货币潮汐"</p>
+    </div>
+    <div class="grid g-2" style="max-width:900px;margin:0 auto;">
+      <div class="panel reveal" style="padding:28px;">
+        <div style="font-size:30px;">🪙</div>
+        <h3 style="color:var(--foam);font-weight:900;margin:12px 0 8px;">货币从哪来</h3>
+        <p style="color:var(--muted);font-size:14.5px;">货币主要通过<b style="color:var(--ink);">跟服务器买卖物品</b>获得：把多余的材料卖给服务器，换钱；需要材料时再从服务器买。</p>
+      </div>
+      <div class="panel reveal" data-delay="1" style="padding:28px;">
+        <div style="font-size:30px;">📈</div>
+        <h3 style="color:var(--foam);font-weight:900;margin:12px 0 8px;">价格会浮动</h3>
+        <p style="color:var(--muted);font-size:14.5px;">收购与出售价格不是死的，会随市场供需<b style="color:var(--ink);">动态浮动</b>，让交易有点"手感"、也更真实。</p>
+      </div>
+      <div class="panel reveal" style="padding:28px;">
+        <div style="font-size:30px;">🔁</div>
+        <h3 style="color:var(--foam);font-weight:900;margin:12px 0 8px;">玩家间怎么交易</h3>
+        <p style="color:var(--muted);font-size:14.5px;">玩家与玩家之间靠 <b style="color:var(--cyan);">/pay</b> 转账货币，间接完成交易——互通有无，简单直接。</p>
+      </div>
+      <div class="panel reveal" data-delay="1" style="padding:28px;border-style:dashed;">
+        <div style="font-size:30px;">🤝</div>
+        <h3 style="color:var(--foam);font-weight:900;margin:12px 0 8px;">信任优先</h3>
+        <p style="color:var(--muted);font-size:14.5px;">服务器没有领地保护，全凭熟人之间的默契。经济在这里是<b style="color:var(--ink);">锦上添花</b>，不是负担。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 动态商店 -->
+<section id="shop" class="sec-deep">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <span class="eyebrow">SHOP</span>
+      <h2>动态价格商店</h2>
+      <p>经济的核心：跟服务器直接买与卖</p>
+    </div>
+    <div class="econ-steps">
+      <div class="panel econ-step reveal">
+        <h3>卖给服务器</h3>
+        <p>把手头多出来的材料、矿物、农产品卖给服务器换钱。收购价会随市场供需浮动。</p>
+      </div>
+      <div class="panel econ-step reveal" data-delay="1">
+        <h3>从服务器买</h3>
+        <p>缺少某个材料时，直接从服务器商店购买。卖的多了价格会变，买回来也随行就市。</p>
+      </div>
+      <div class="panel econ-step reveal" data-delay="2">
+        <h3>动态定价</h3>
+        <p>同样的物品，今天和明天的价格可能不一样——供求关系会实时影响行情，让经济活起来。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 玩家转账 -->
+<section id="transfer" class="sec-mid">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <span class="eyebrow">TRANSFER</span>
+      <h2>玩家间转账</h2>
+      <p>用 /pay 完成玩家与玩家之间的交易</p>
+    </div>
+    <div class="panel reveal" style="padding:36px;max-width:820px;margin:0 auto;text-align:center;">
+      <p style="color:var(--muted);font-size:15px;margin-bottom:22px;">你和朋友谈好一件物品的价格，通过转账结清——服务器没有复杂的一口价市场，交易靠人，也靠默契。</p>
+      <div class="flow">
+        <span class="node">卖家 发货</span>
+        <span class="arr">→</span>
+        <span class="node">约定价格</span>
+        <span class="arr">→</span>
+        <span class="node">/pay 买家 金额</span>
+        <span class="arr">→</span>
+        <span class="node">交易完成</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 未来市场 -->
+<section id="future" class="sec-deep">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <span class="eyebrow">FUTURE</span>
+      <h2>未来的独立市场</h2>
+      <p>预留的 API，正在酝酿的下一步</p>
+    </div>
+    <div class="panel reveal" style="padding:36px;max-width:820px;margin:0 auto;">
+      <div style="text-align:center;margin-bottom:18px;">
+        <div style="font-size:36px;">🧪</div>
+        <h3 style="color:var(--foam);font-weight:900;font-size:20px;margin-top:10px;">通过 API 做独立市场插件</h3>
+        <span class="soon">尚未开工 · 敬请期待</span>
+      </div>
+      <p style="color:var(--muted);font-size:14.5px;text-align:center;">
+        现有的经济插件开放了 <b style="color:var(--ink);">API 接口</b>，未来可以基于它单独做一个
+        <b style="color:var(--cyan-soft);">独立的市场插件</b>——让玩家间交易拥有自己的界面与规则，
+        比如挂单买卖、市场行情一览。这是一个还在规划里的想法，等船长有空了就会开工。
+      </p>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <span class="pixel">BLUE SHARK · 2026</span>
+  私人服务器介绍站 · 纯展示，不对外招募
+  <div class="note">主页 · 地图 · 成员 · 经济 · 模组</div>
+</footer>
+
+<button class="to-top" title="回到顶部">↑</button>
+<script src="../assets/js/site.js"></script>
+</body>
+</html>

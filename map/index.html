@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>世界地图 · Blue Shark</title>
+<meta name="description" content="Blue Shark 的世界地图——出生点、主城与各基地的地标坐标。私人服务器，仅作记录展示。">
+<link rel="icon" type="image/jpeg" href="../images/server-icon.jpg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Noto+Sans+SC:wght@400;500;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/theme.css">
+<style>
+  .map-photo{background:var(--card);border:1px solid var(--line-strong);border-radius:var(--radius);
+    padding:14px;box-shadow:var(--shadow);}
+  .map-photo img{width:100%;border-radius:10px;display:block;background:#04264a;}
+  .map-photo-cap{text-align:center;color:var(--muted);font-size:13px;padding:12px 6px 4px;}
+</style>
+</head>
+<body>
+
+<nav class="site-nav">
+  <div class="nav-inner wrap">
+    <a class="brand" href="../index.html"><img src="../images/server-icon.jpg" alt="Blue Shark 图标">BLUE&nbsp;SHARK</a>
+    <div class="nav-links">
+      <a href="../index.html">主页</a>
+      <a href="index.html" class="active">地图</a>
+      <a href="../members/index.html">成员</a>
+      <a href="../economy/index.html">经济</a>
+      <a href="../mods/index.html">模组</a>
+    </div>
+  </div>
+</nav>
+
+<div class="toc">
+  <div class="toc-inner">
+    <a href="#overview">地图示意</a>
+    <a href="#spawn">出生点</a>
+    <a href="#city">主城</a>
+    <a href="#bases">各地基地</a>
+    <a href="#photo">地图原图</a>
+  </div>
+</div>
+
+<header class="page-hero">
+  <div class="bubbles" aria-hidden="true"></div>
+  <div class="wrap">
+    <div class="icon-big">🗺️</div>
+    <h1>世界地图</h1>
+    <p>出生点、主城与各基地的坐标速览。坐标仅作记录，不对外开放。</p>
+  </div>
+</header>
+
+<!-- 地图示意 -->
+<section id="overview" class="sec-mid">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <span class="eyebrow">OVERVIEW</span>
+      <h2>地图示意</h2>
+      <p>一片自然地形生成的世界的简版示意</p>
+    </div>
+    <div class="map-stage reveal">
+      <div class="map-grid"></div>
+      <div class="map-mark" style="left:30%;top:34%;"><div class="pin"></div><div class="nm">出生点</div></div>
+      <div class="map-mark" style="left:52%;top:28%;"><div class="pin"></div><div class="nm">主城</div></div>
+      <div class="map-mark" style="left:44%;top:58%;"><div class="pin"></div><div class="nm">中央基地</div></div>
+      <div class="map-mark" style="left:74%;top:46%;"><div class="pin"></div><div class="nm">灯塔</div></div>
+      <div class="map-mark" style="left:66%;top:72%;"><div class="pin"></div><div class="nm">水下基地</div></div>
+      <div class="map-mark" style="left:20%;top:70%;"><div class="pin"></div><div class="nm">探险港</div></div>
+      <div class="map-mark" style="left:58%;top:86%;"><div class="pin"></div><div class="nm">南部雪原</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- 出生点 -->
+<section id="spawn" class="sec-deep">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <span class="eyebrow">SPAWN</span>
+      <h2>出生点</h2>
+      <p>世界原点，故事开始的地方</p>
+    </div>
+    <div class="grid g-2" style="max-width:860px;margin:0 auto;">
+      <div class="panel reveal" style="padding:26px;">
+        <div style="font-size:30px;">🏠</div>
+        <h3 style="color:var(--foam);font-weight:900;margin:10px 0 6px;">第一块落脚地</h3>
+        <p style="color:var(--muted);font-size:14.5px;">每位玩家上线后的起点，也是最初大家一起开荒、互相认识的地方。附近通常留有早期的小房子和公共设施。</p>
+      </div>
+      <div class="panel reveal" data-delay="1" style="padding:26px;">
+        <div style="font-size:30px;">🧭</div>
+        <h3 style="color:var(--foam);font-weight:900;margin:10px 0 6px;">从这里出发</h3>
+        <p style="color:var(--muted);font-size:14.5px;">以出生点为原点向四周扩散，往东是主城与沿海，往南是雪原，往西是山林与矿脉。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 主城 -->
+<section id="city" class="sec-mid">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <span class="eyebrow">MAIN CITY</span>
+      <h2>主城</h2>
+      <p>集合与交易的中心</p>
+    </div>
+    <div class="grid g-3">
+      <div class="panel reveal" style="padding:24px;"><div style="font-size:28px;">🏰</div><h3 style="color:var(--foam);font-weight:900;margin:10px 0 6px;">集合地</h3><p style="color:var(--muted);font-size:14px;">约着一起玩的时候，大家会在这里碰头，商量今天干什么。</p></div>
+      <div class="panel reveal" data-delay="1" style="padding:24px;"><div style="font-size:28px;">🏪</div><h3 style="color:var(--foam);font-weight:900;margin:10px 0 6px;">交易区</h3><p style="color:var(--muted);font-size:14px;">主城附近是服务器商店与转账交易的常驻地，经济往来的热闹地方。</p></div>
+      <div class="panel reveal" data-delay="2" style="padding:24px;"><div style="font-size:28px;">🗼</div><h3 style="color:var(--foam);font-weight:900;margin:10px 0 6px;">地标建筑</h3><p style="color:var(--muted);font-size:14px;">主城里往往立着大家合力建起的地标，是这片海最容易认的坐标。</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- 各地基地 -->
+<section id="bases" class="sec-deep">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <span class="eyebrow">BASES</span>
+      <h2>各地基地</h2>
+      <p>散落在世界各处的落脚点</p>
+    </div>
+    <div class="grid g-3">
+      <div class="panel landmark-card reveal">
+        <div class="lm-ico">⚙️</div>
+        <h3>中央基地</h3>
+        <div class="pos">坐标 · 主城西南</div>
+        <p>红石与自动化的大本营，流水线、农场、转运系统的中枢都聚在这里。</p>
+      </div>
+      <div class="panel landmark-card reveal" data-delay="1">
+        <div class="lm-ico">🌊</div>
+        <h3>水下基地</h3>
+        <div class="pos">坐标 · 东南海岸</div>
+        <p>建在海底的玻璃穹顶基地，透过天花板能看到游过的鱼——深海风十足。</p>
+      </div>
+      <div class="panel landmark-card reveal" data-delay="2">
+        <div class="lm-ico">⛵</div>
+        <h3>探险港</h3>
+        <div class="pos">坐标 · 西岸</div>
+        <p>远航的出发点，小船停靠在这里，探险家们从这里出海测绘。</p>
+      </div>
+      <div class="panel landmark-card reveal">
+        <div class="lm-ico">🗼</div>
+        <h3>海边灯塔</h3>
+        <div class="pos">坐标 · 东北岬角</div>
+        <p>海边最高的地标，夜晚亮起时是老远就能看见的归航坐标。</p>
+      </div>
+      <div class="panel landmark-card reveal" data-delay="1">
+        <div class="lm-ico">❄️</div>
+        <h3>南部雪原营地</h3>
+        <div class="pos">坐标 · 南纬雪原</div>
+        <p>雪原上的临时营地，用来采集资源、顺便看极光。</p>
+      </div>
+      <div class="panel landmark-card reveal" data-delay="2">
+        <div class="lm-ico">⛰️</div>
+        <h3>西部矿脉屋</h3>
+        <div class="pos">坐标 · 西侧群山</div>
+        <p>矿工头子的根据地，依山而建，地下的矿道四通八达。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 世界地图原图 -->
+<section id="photo" class="sec-mid">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <span class="eyebrow">WORLD MAP</span>
+      <h2>世界地图原图</h2>
+      <p>整片海的俯视角</p>
+    </div>
+    <div class="map-photo reveal">
+      <img src="../images/地图.png" alt="世界地图 · 目前仅标记了出生点">
+      <div class="map-photo-cap">▲ 地图上目前只标注了出生点，其余地标（主城、各基地）的位置标注正在补充中</div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <span class="pixel">BLUE SHARK · 2026</span>
+  私人服务器介绍站 · 纯展示，不对外招募
+  <div class="note">主页 · 地图 · 成员 · 经济 · 模组</div>
+</footer>
+
+<button class="to-top" title="回到顶部">↑</button>
+<script src="../assets/js/site.js"></script>
+</body>
+</html>
