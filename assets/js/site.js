@@ -380,6 +380,8 @@
      ============================================================ */
 
   function initSortable(){
+    /* 手机/触屏（pointer:coarse）上锁定拖拽，避免误触乱序 */
+    if (!(window.matchMedia && window.matchMedia('(pointer:fine)').matches)) return;
     var grids = document.querySelectorAll('.grid, .econ-steps');
     var drag = null;
 
