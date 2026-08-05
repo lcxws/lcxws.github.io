@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>服务器状态 · Blue Shark</title>
+<meta name="description" content="Blue Shark 的服务器状态页——当前状态、游戏版本、服务端、连接方式的静态示意。私人服务器，纯展示。">
+<link rel="icon" type="image/jpeg" href="../images/server-icon.jpg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Noto+Sans+SC:wght@400;500;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/theme.css">
+</head>
+<body>
+
+<nav class="site-nav">
+  <div class="nav-inner wrap">
+    <a class="brand" href="../index.html"><img src="../images/server-icon.jpg" alt="Blue Shark 图标">BLUE&nbsp;SHARK</a>
+    <div class="nav-links">
+      <a href="../index.html">主页</a>
+      <a href="../map/index.html">地图</a>
+      <a href="../members/index.html">成员</a>
+      <a href="../economy/index.html">经济</a>
+      <a href="../mods/index.html">模组</a>
+    </div>
+  </div>
+</nav>
+
+<div class="toc">
+  <div class="toc-inner">
+    <a href="#overview">当前状态</a>
+    <a href="#info">基本信息</a>
+    <a href="#connect">连接说明</a>
+  </div>
+</div>
+
+<header class="page-hero">
+  <div class="bubbles" aria-hidden="true"></div>
+  <div class="wrap">
+    <div class="icon-big">📡</div>
+    <h1>服务器状态</h1>
+    <p>一片海的运行示意——当前状态、版本与服务端速览。</p>
+  </div>
+</header>
+
+<!-- 当前状态 -->
+<section id="overview" class="sec-mid">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <span class="eyebrow">OVERVIEW</span>
+      <h2>当前状态</h2>
+      <p>一眼看清这片海跑没跑着</p>
+    </div>
+    <div class="panel reveal" style="padding:34px;max-width:820px;margin:0 auto;text-align:center;">
+      <div class="status-pill"><span class="status-dot on"></span>RUNNING · 运行中</div>
+      <p style="margin-top:18px;color:var(--muted);font-size:14.5px;">
+        服务器保持在线，通常常驻 3~5 位老朋友，盖房子、造机器、聊聊天。
+      </p>
+      <div class="status-note" style="margin-top:16px;">⚠ 本页为静态示意，数据不实时刷新，仅展示页面风格。</div>
+    </div>
+    <div class="grid g-4" style="max-width:900px;margin:24px auto 0;">
+      <div class="panel info-card reveal"><div class="k">🟢 当前状态</div><div class="v">运行中</div></div>
+      <div class="panel info-card reveal" data-delay="1"><div class="k">📶 在线示意</div><div class="v">3~5 人</div></div>
+      <div class="panel info-card reveal" data-delay="2"><div class="k">🕰️ 延迟示意</div><div class="v">良好</div></div>
+      <div class="panel info-card reveal" data-delay="3"><div class="k">⏱️ 开服时长</div><div class="v">2 年</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- 基本信息 -->
+<section id="info" class="sec-deep">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <span class="eyebrow">SERVER INFO</span>
+      <h2>基本信息</h2>
+      <p>一组静态信息卡片，和主页保持一致</p>
+    </div>
+    <div class="grid g-4">
+      <div class="panel info-card reveal"><div class="k">🟩 游戏版本</div><div class="v">JAVA 1.20.X</div></div>
+      <div class="panel info-card reveal" data-delay="1"><div class="k">🧰 服务端</div><div class="v small">Mohist<br>Bukkit + Forge</div></div>
+      <div class="panel info-card reveal" data-delay="2"><div class="k">📦 模组规模</div><div class="v">10~30 个</div></div>
+      <div class="panel info-card reveal" data-delay="3"><div class="k">👥 常驻玩家</div><div class="v">3~5 人</div></div>
+      <div class="panel info-card reveal"><div class="k">☠️ 死亡掉落</div><div class="v">保留背包</div></div>
+      <div class="panel info-card reveal" data-delay="1"><div class="k">⚔️ 野外 PvP</div><div class="v">开放</div></div>
+      <div class="panel info-card reveal" data-delay="2"><div class="k">💰 经济系统</div><div class="v">动态商店</div></div>
+      <div class="panel info-card reveal" data-delay="3"><div class="k">🔌 连接方式</div><div class="v small">皎月连 · 内网穿透<br>私人服务器</div></div>
+    </div>
+    <div class="panel reveal" style="max-width:820px;margin:30px auto 0;padding:26px;">
+      <h3 style="font-weight:900;color:var(--foam);font-size:17px;">连接质量示意</h3>
+      <p style="color:var(--muted);font-size:13.5px;margin-top:6px;">以下仅为示意条，不代表真实延迟。</p>
+      <div class="status-bar" style="max-width:420px;margin-top:16px;"><i style="width:82%;"></i></div>
+      <div class="status-note" style="margin-top:10px;">稳定 · 内网穿透下的日常体验良好</div>
+    </div>
+  </div>
+</section>
+
+<!-- 连接说明 -->
+<section id="connect" class="sec-mid">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <span class="eyebrow">CONNECT</span>
+      <h2>连接说明</h2>
+      <p>这片海怎么进来</p>
+    </div>
+    <div class="panel reveal" style="padding:34px;max-width:820px;margin:0 auto;">
+      <p style="color:var(--muted);font-size:15px;">
+        Blue Shark 通过 <b style="color:var(--ink);">皎月连</b> 内网穿透在朋友们的网络之间相连，
+        不对外开放招募——连接地址只给熟悉的朋友。游戏内指令、经济用法的说明，可以到
+        <a href="../guide/index.html" style="color:var(--cyan-soft);font-weight:700;">玩法指南</a> 里翻一翻。
+      </p>
+      <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:20px;">
+        <a class="btn btn-ghost" href="../index.html">◀ 回到主页</a>
+        <a class="btn btn-ghost" href="../guide/index.html">▶ 查看玩法指南</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <span class="pixel">BLUE SHARK · 2026</span>
+  私人服务器介绍站 · 纯展示，不对外招募
+  <div class="note">
+    <a href="../index.html">主页</a> · <a href="../map/index.html">地图</a> · <a href="../members/index.html">成员</a> · <a href="../economy/index.html">经济</a> · <a href="../mods/index.html">模组</a> · <a href="index.html">状态</a> · <a href="../leaderboard/index.html">排行</a> · <a href="../guide/index.html">指南</a> · <a href="../about/index.html">关于</a>
+  </div>
+</footer>
+
+<button class="to-top" title="回到顶部">↑</button>
+<script src="../assets/js/site.js"></script>
+</body>
+</html>
