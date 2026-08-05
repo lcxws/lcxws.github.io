@@ -13,6 +13,8 @@
 </head>
 <body>
 
+<canvas id="ocean-fx" aria-hidden="true"></canvas>
+
 <nav class="site-nav">
   <div class="nav-inner wrap">
     <a class="brand" href="../index.html"><img src="../images/server-icon.jpg" alt="Blue Shark 图标">BLUE&nbsp;SHARK</a>
@@ -35,7 +37,6 @@
 </div>
 
 <header class="page-hero">
-  <div class="bubbles" aria-hidden="true"></div>
   <div class="wrap">
     <div class="icon-big">🧭</div>
     <h1>玩法指南</h1>
@@ -54,18 +55,18 @@
     <div class="econ-steps">
       <div class="panel econ-step reveal">
         <h3>跟服务器买卖</h3>
-        <p>货币主要靠<b style="color:var(--ink);">跟服务器买卖物品</b>获得：多余的材料卖给服务器换钱，缺材料时再从服务器买。</p>
+        <p>货币主要靠<b class="emph">跟服务器买卖物品</b>获得：多余的材料卖给服务器换钱，缺材料时再从服务器买。</p>
       </div>
       <div class="panel econ-step reveal" data-delay="1">
         <h3>价格会浮动</h3>
-        <p>收购与出售价格不是死的，会随市场供需<b style="color:var(--ink);">动态浮动</b>，让交易有点"手感"。</p>
+        <p>收购与出售价格不是死的，会随市场供需<b class="emph">动态浮动</b>，让交易有点"手感"。</p>
       </div>
       <div class="panel econ-step reveal" data-delay="2">
         <h3>/pay 转账</h3>
-        <p>玩家之间靠 <b style="color:var(--cyan);">/pay</b> 转账货币，互通有无，简单直接。</p>
+        <p>玩家之间靠 <b class="emph-cyan">/pay</b> 转账货币，互通有无，简单直接。</p>
       </div>
     </div>
-    <div class="panel reveal" style="padding:26px;max-width:820px;margin:24px auto 0;text-align:center;">
+    <div class="panel center-box pad-md text-center reveal" style="margin-top:24px;">
       <p style="color:var(--muted);font-size:14.5px;">一次典型交易的流程：</p>
       <div class="flow">
         <span class="node">卖家 发货</span>
@@ -77,7 +78,7 @@
         <span class="node">交易完成</span>
       </div>
       <p style="color:var(--muted);font-size:12.5px;margin-top:16px;">
-        经济系统由自研的 <b style="color:var(--cyan-soft);">EconomyPlugin</b> 提供，详见<a href="../economy/index.html" style="color:var(--cyan-soft);font-weight:700;">经济系统</a>页。
+        经济系统由自研的 <b class="emph-soft">EconomyPlugin</b> 提供，详见<a class="link" href="../economy/index.html">经济系统</a>页。
       </p>
     </div>
   </div>
@@ -91,12 +92,12 @@
       <h2>传送篇</h2>
       <p>找人一起玩更方便</p>
     </div>
-    <div class="panel reveal" style="padding:30px;max-width:820px;margin:0 auto;">
-      <div style="font-size:30px;">📨</div>
-      <h3 style="color:var(--foam);font-weight:900;margin:10px 0 8px;font-size:18px;">/tpa —— 传送请求</h3>
-      <p style="color:var(--muted);font-size:14.5px;">
-        用 <b style="color:var(--cyan);">/tpa</b> 向朋友发送传送请求，对方同意后就能传过去。
-        这是服务器里找人一起玩最常用的方式，由自研的 <b style="color:var(--ink);">TPAPlugin</b> 提供。
+    <div class="panel center-box mini-card reveal">
+      <div class="ic">📨</div>
+      <h3>/tpa —— 传送请求</h3>
+      <p>
+        用 <b class="emph-cyan">/tpa</b> 向朋友发送传送请求，对方同意后就能传过去。
+        这是服务器里找人一起玩最常用的方式，由自研的 <b class="emph">TPAPlugin</b> 提供。
       </p>
       <div class="tag" style="margin-top:14px;">📨 TPAPlugin · 传送请求</div>
     </div>
@@ -111,19 +112,19 @@
       <h2>连接篇</h2>
       <p>这片海怎么进来</p>
     </div>
-    <div class="grid g-2" style="max-width:860px;margin:0 auto;">
-      <div class="panel reveal" style="padding:26px;">
-        <div style="font-size:30px;">🔌</div>
-        <h3 style="color:var(--foam);font-weight:900;margin:10px 0 6px;">皎月连 · 内网穿透</h3>
-        <p style="color:var(--muted);font-size:14.5px;">服务器通过皎月连内网穿透连接，在朋友们的网络之间搭起桥。</p>
+    <div class="grid g-2 center-box w860">
+      <div class="panel mini-card reveal">
+        <div class="ic">🔌</div>
+        <h3>皎月连 · 内网穿透</h3>
+        <p>服务器通过皎月连内网穿透连接，在朋友们的网络之间搭起桥。</p>
       </div>
-      <div class="panel reveal" data-delay="1" style="padding:26px;border-style:dashed;">
-        <div style="font-size:30px;">🔒</div>
-        <h3 style="color:var(--foam);font-weight:900;margin:10px 0 6px;">私人小服</h3>
-        <p style="color:var(--muted);font-size:14.5px;">不公开招募、不对外开放，连接地址只给熟悉的朋友。</p>
+      <div class="panel mini-card dashed reveal" data-delay="1">
+        <div class="ic">🔒</div>
+        <h3>私人小服</h3>
+        <p>不公开招募、不对外开放，连接地址只给熟悉的朋友。</p>
       </div>
     </div>
-    <p class="reveal" style="text-align:center;margin-top:28px;">
+    <p class="reveal text-center" style="margin-top:28px;">
       <span class="soon">其余内容待补充 · 敬请期待</span>
     </p>
   </div>

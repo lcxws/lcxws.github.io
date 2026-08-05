@@ -19,6 +19,8 @@
 </head>
 <body>
 
+<canvas id="ocean-fx" aria-hidden="true"></canvas>
+
 <nav class="site-nav">
   <div class="nav-inner wrap">
     <a class="brand" href="../index.html"><img src="../images/server-icon.jpg" alt="Blue Shark 图标">BLUE&nbsp;SHARK</a>
@@ -42,7 +44,6 @@
 </div>
 
 <header class="page-hero">
-  <div class="bubbles" aria-hidden="true"></div>
   <div class="wrap">
     <div class="icon-big">🗺️</div>
     <h1>世界地图</h1>
@@ -58,16 +59,16 @@
       <h2>出生点</h2>
       <p>世界原点，故事开始的地方</p>
     </div>
-    <div class="grid g-2" style="max-width:860px;margin:0 auto;">
-      <div class="panel reveal" style="padding:26px;">
-        <div style="font-size:30px;">🏠</div>
-        <h3 style="color:var(--foam);font-weight:900;margin:10px 0 6px;">第一块落脚地</h3>
-        <p style="color:var(--muted);font-size:14.5px;">每位玩家上线后的起点，也是最初大家一起开荒、互相认识的地方。附近通常留有早期的小房子和公共设施。</p>
+    <div class="grid g-2 center-box w860">
+      <div class="panel mini-card reveal">
+        <div class="ic">🏠</div>
+        <h3>第一块落脚地</h3>
+        <p>每位玩家上线后的起点，也是最初大家一起开荒、互相认识的地方。附近通常留有早期的小房子和公共设施。</p>
       </div>
-      <div class="panel reveal" data-delay="1" style="padding:26px;">
-        <div style="font-size:30px;">🧭</div>
-        <h3 style="color:var(--foam);font-weight:900;margin:10px 0 6px;">从这里出发</h3>
-        <p style="color:var(--muted);font-size:14.5px;">以出生点为原点向四周扩散，往东是主城与沿海，往南是雪原，往西是山林与矿脉。</p>
+      <div class="panel mini-card reveal" data-delay="1">
+        <div class="ic">🧭</div>
+        <h3>从这里出发</h3>
+        <p>以出生点为原点向四周扩散，往东是主城与沿海，往南是雪原，往西是山林与矿脉。</p>
       </div>
     </div>
   </div>
@@ -82,9 +83,9 @@
       <p>集合与交易的中心</p>
     </div>
     <div class="grid g-3">
-      <div class="panel reveal" style="padding:24px;"><div style="font-size:28px;">🏰</div><h3 style="color:var(--foam);font-weight:900;margin:10px 0 6px;">集合地</h3><p style="color:var(--muted);font-size:14px;">约着一起玩的时候，大家会在这里碰头，商量今天干什么。</p></div>
-      <div class="panel reveal" data-delay="1" style="padding:24px;"><div style="font-size:28px;">🏪</div><h3 style="color:var(--foam);font-weight:900;margin:10px 0 6px;">交易区</h3><p style="color:var(--muted);font-size:14px;">主城附近是服务器商店与转账交易的常驻地，经济往来的热闹地方。</p></div>
-      <div class="panel reveal" data-delay="2" style="padding:24px;"><div style="font-size:28px;">🗼</div><h3 style="color:var(--foam);font-weight:900;margin:10px 0 6px;">地标建筑</h3><p style="color:var(--muted);font-size:14px;">主城里往往立着大家合力建起的地标，是这片海最容易认的坐标。</p></div>
+      <div class="panel mini-card reveal"><div class="ic">🏰</div><h3>集合地</h3><p>约着一起玩的时候，大家会在这里碰头，商量今天干什么。</p></div>
+      <div class="panel mini-card reveal" data-delay="1"><div class="ic">🏪</div><h3>交易区</h3><p>主城附近是服务器商店与转账交易的常驻地，经济往来的热闹地方。</p></div>
+      <div class="panel mini-card reveal" data-delay="2"><div class="ic">🗼</div><h3>地标建筑</h3><p>主城里往往立着大家合力建起的地标，是这片海最容易认的坐标。</p></div>
     </div>
   </div>
 </section>

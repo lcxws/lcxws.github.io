@@ -13,6 +13,8 @@
 </head>
 <body>
 
+<canvas id="ocean-fx" aria-hidden="true"></canvas>
+
 <nav class="site-nav">
   <div class="nav-inner wrap">
     <a class="brand" href="../index.html"><img src="../images/server-icon.jpg" alt="Blue Shark 图标">BLUE&nbsp;SHARK</a>
@@ -34,7 +36,6 @@
 </div>
 
 <header class="page-hero">
-  <div class="bubbles" aria-hidden="true"></div>
   <div class="wrap">
     <div class="icon-big">🏆</div>
     <h1>排行榜</h1>
@@ -50,21 +51,21 @@
       <h2>经济排行</h2>
       <p>比谁的小金库更厚实（示意数据）</p>
     </div>
-    <div class="panel reveal" style="max-width:760px;margin:0 auto;padding:14px 10px;">
+    <div class="panel lb-panel reveal">
       <table class="lb-table">
         <thead>
-          <tr><th>名次</th><th>玩家</th><th style="text-align:right;">余额（示意）</th></tr>
+          <tr><th>名次</th><th>玩家</th><th class="text-right">余额（示意）</th></tr>
         </thead>
         <tbody>
-          <tr><td class="rank r1">1</td><td>神秘腐竹</td><td class="num" style="text-align:right;">120,000</td></tr>
-          <tr><td class="rank r2">2</td><td>破面大王666</td><td class="num" style="text-align:right;">96,500</td></tr>
-          <tr><td class="rank r3">3</td><td>平生独爱芙蓉王</td><td class="num" style="text-align:right;">81,200</td></tr>
-          <tr><td class="rank">4</td><td>乡村土地改造师</td><td class="num" style="text-align:right;">74,800</td></tr>
+          <tr><td class="rank r1">1</td><td>神秘腐竹</td><td class="num text-right">120,000</td></tr>
+          <tr><td class="rank r2">2</td><td>破面大王666</td><td class="num text-right">96,500</td></tr>
+          <tr><td class="rank r3">3</td><td>平生独爱芙蓉王</td><td class="num text-right">81,200</td></tr>
+          <tr><td class="rank">4</td><td>乡村土地改造师</td><td class="num text-right">74,800</td></tr>
         </tbody>
       </table>
     </div>
-    <p class="reveal" style="text-align:center;color:var(--muted);font-size:12.5px;margin-top:18px;">
-      货币来自<a href="../economy/index.html" style="color:var(--cyan-soft);font-weight:700;">经济系统</a>：跟服务器买卖、动态价格、/pay 转账。
+    <p class="reveal foot-note sm">
+      货币来自<a class="link" href="../economy/index.html">经济系统</a>：跟服务器买卖、动态价格、/pay 转账。
     </p>
   </div>
 </section>
@@ -77,21 +78,21 @@
       <h2>在线时长排行</h2>
       <p>谁在海上漂得最久（示意数据）</p>
     </div>
-    <div class="panel reveal" style="max-width:760px;margin:0 auto;padding:14px 10px;">
+    <div class="panel lb-panel reveal">
       <table class="lb-table">
         <thead>
-          <tr><th>名次</th><th>玩家</th><th style="text-align:right;">在线时长（示意）</th></tr>
+          <tr><th>名次</th><th>玩家</th><th class="text-right">在线时长（示意）</th></tr>
         </thead>
         <tbody>
-          <tr><td class="rank r1">1</td><td>平生独爱芙蓉王</td><td class="num" style="text-align:right;">860 小时</td></tr>
-          <tr><td class="rank r2">2</td><td>神秘腐竹</td><td class="num" style="text-align:right;">820 小时</td></tr>
-          <tr><td class="rank r3">3</td><td>乡村土地改造师</td><td class="num" style="text-align:right;">605 小时</td></tr>
-          <tr><td class="rank">4</td><td>破面大王666</td><td class="num" style="text-align:right;">590 小时</td></tr>
+          <tr><td class="rank r1">1</td><td>平生独爱芙蓉王</td><td class="num text-right">860 小时</td></tr>
+          <tr><td class="rank r2">2</td><td>神秘腐竹</td><td class="num text-right">820 小时</td></tr>
+          <tr><td class="rank r3">3</td><td>乡村土地改造师</td><td class="num text-right">605 小时</td></tr>
+          <tr><td class="rank">4</td><td>破面大王666</td><td class="num text-right">590 小时</td></tr>
         </tbody>
       </table>
     </div>
-    <p class="reveal" style="text-align:center;color:var(--muted);font-size:12.5px;margin-top:18px;">
-      想认识他们？去<a href="../members/index.html" style="color:var(--cyan-soft);font-weight:700;">成员</a>页逛逛；想知道这些玩法怎么用？看<a href="../guide/index.html" style="color:var(--cyan-soft);font-weight:700;">玩法指南</a>。
+    <p class="reveal foot-note sm">
+      想认识他们？去<a class="link" href="../members/index.html">成员</a>页逛逛；想知道这些玩法怎么用？看<a class="link" href="../guide/index.html">玩法指南</a>。
     </p>
   </div>
 </section>

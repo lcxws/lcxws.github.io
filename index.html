@@ -13,6 +13,8 @@
 </head>
 <body>
 
+<canvas id="ocean-fx" aria-hidden="true"></canvas>
+
 <!-- ================= 导航 ================= -->
 <nav class="site-nav">
   <div class="nav-inner wrap">
@@ -29,7 +31,6 @@
 
 <!-- ================= Hero ================= -->
 <header class="hero">
-  <div class="bubbles" aria-hidden="true"></div>
   <div class="wrap">
     <div class="hero-badge">
       <img class="hero-ico" src="images/server-icon.jpg" alt="Blue Shark 图标">
@@ -62,38 +63,38 @@
       <p>开服两年，始终是一条小小的、认真的生存之船</p>
     </div>
     <div class="grid g-2" style="align-items:stretch;">
-      <div class="panel reveal" style="padding:34px;">
-        <h3 style="font-size:22px;font-weight:900;color:var(--foam);margin-bottom:14px;">它是怎么来的</h3>
-        <p style="color:var(--muted);margin-bottom:12px;">
+      <div class="panel reveal story-card">
+        <h3>它是怎么来的</h3>
+        <p>
           Blue Shark 诞生于两年前的一个想法：不要花哨的氪金、不要复杂的框架，
-          就几个朋友在 <b style="color:var(--ink);">Minecraft 原版自然地形</b>里安安静静地玩下去。
+          就几个朋友在 <b class="emph">Minecraft 原版自然地形</b>里安安静静地玩下去。
         </p>
-        <p style="color:var(--muted);margin-bottom:12px;">
-          我们用的服务端是 <b style="color:var(--ink);">Mohist</b>——同时支持 Bukkit 插件与 Forge 模组，
-          在这个基础上装了 <b style="color:var(--ink);">10~30 个轻量模组</b>。不追求华丽大改，
+        <p>
+          我们用的服务端是 <b class="emph">Mohist</b>——同时支持 Bukkit 插件与 Forge 模组，
+          在这个基础上装了 <b class="emph">10~30 个轻量模组</b>。不追求华丽大改，
           只让生存多一些方便、多一些乐趣，玩法依然是熟悉的味道。
         </p>
-        <p style="color:var(--muted);">
-          服务器常驻 <b style="color:var(--ink);">3~5 人</b>，靠 <b style="color:var(--ink);">皎月连内网穿透</b>在朋友们之间相连，
+        <p>
+          服务器常驻 <b class="emph">3~5 人</b>，靠 <b class="emph">皎月连内网穿透</b>在朋友们之间相连，
           不公开招募、不对外开放——它是一片只属于这个小圈子的海。
         </p>
-        <p style="margin-top:16px;"><a href="about/index.html" style="color:var(--cyan-soft);font-weight:700;">关于本站 ›</a></p>
+        <p class="story-link"><a class="link" href="about/index.html">关于本站 ›</a></p>
       </div>
       <div class="grid" style="gap:16px;align-content:start;">
-        <div class="panel reveal" data-delay="1" style="padding:20px;display:flex;align-items:center;gap:14px;">
-          <span style="font-size:24px;">⏳</span>
-          <div><div class="stat-num" style="font-family:var(--pixel);font-size:24px;color:var(--cyan);" data-count="2">0</div>
-          <div style="font-size:14px;color:var(--muted);font-weight:700;">年开服历史</div></div>
+        <div class="panel reveal stat-card" data-delay="1">
+          <span class="stat-ico">⏳</span>
+          <div><div class="stat-num" data-count="2">0</div>
+          <div class="stat-cap">年开服历史</div></div>
         </div>
-        <div class="panel reveal" data-delay="2" style="padding:20px;display:flex;align-items:center;gap:14px;">
-          <span style="font-size:24px;">👥</span>
-          <div><div style="font-family:var(--pixel);font-size:24px;color:var(--cyan);">3~5</div>
-          <div style="font-size:14px;color:var(--muted);font-weight:700;">常驻玩家 · 熟人圈子</div></div>
+        <div class="panel reveal stat-card" data-delay="2">
+          <span class="stat-ico">👥</span>
+          <div><div class="stat-num">3~5</div>
+          <div class="stat-cap">常驻玩家 · 熟人圈子</div></div>
         </div>
-        <div class="panel reveal" data-delay="3" style="padding:20px;display:flex;align-items:center;gap:14px;">
-          <span style="font-size:24px;">🧱</span>
-          <div><div style="font-family:var(--pixel);font-size:24px;color:var(--cyan);">1.20.x</div>
-          <div style="font-size:14px;color:var(--muted);font-weight:700;">Java 版 · 自然地形生成</div></div>
+        <div class="panel reveal stat-card" data-delay="3">
+          <span class="stat-ico">🧱</span>
+          <div><div class="stat-num">1.20.x</div>
+          <div class="stat-cap">Java 版 · 自然地形生成</div></div>
         </div>
         <div class="panel reveal" data-delay="3" style="padding:22px;background:rgba(0,212,255,.06);border-style:dashed;">
           <p style="font-weight:700;color:var(--cyan-soft);">「熟人小服 · 轻松生存」</p>
@@ -244,11 +245,11 @@
     <div class="faq-list">
       <details class="faq-item reveal">
         <summary>怎么加入服务器？</summary>
-        <p class="a">Blue Shark 是私人小服，通过 <b style="color:var(--ink);">皎月连内网穿透</b>连接，连接地址只给熟悉的朋友，不对外公开招募。</p>
+        <p class="a">Blue Shark 是私人小服，通过 <b class="emph">皎月连内网穿透</b>连接，连接地址只给熟悉的朋友，不对外公开招募。</p>
       </details>
       <details class="faq-item reveal" data-delay="1">
         <summary>死亡会掉背包吗？</summary>
-        <p class="a">不会。服务器开启<b style="color:var(--ink);">死亡保留背包</b>，探索、摔死、被怪追，都可以优雅地重新出发。</p>
+        <p class="a">不会。服务器开启<b class="emph">死亡保留背包</b>，探索、摔死、被怪追，都可以优雅地重新出发。</p>
       </details>
       <details class="faq-item reveal" data-delay="2">
         <summary>野外可以 PvP 吗？</summary>
@@ -256,11 +257,11 @@
       </details>
       <details class="faq-item reveal">
         <summary>用了哪些模组和插件？</summary>
-        <p class="a">服务端是 <b style="color:var(--ink);">Mohist</b>，跑着 16 个轻量 Forge 模组和 14 个 Bukkit 插件（大部分自研）。完整清单见 <a href="mods/index.html">模组与插件</a>页。</p>
+        <p class="a">服务端是 <b class="emph">Mohist</b>，跑着 16 个轻量 Forge 模组和 14 个 Bukkit 插件（大部分自研）。完整清单见 <a href="mods/index.html">模组与插件</a>页。</p>
       </details>
       <details class="faq-item reveal" data-delay="1">
         <summary>玩家之间怎么交易？</summary>
-        <p class="a">靠 <b style="color:var(--cyan);">/pay</b> 转账货币，或去商店跟服务器买卖。详情见 <a href="economy/index.html">经济系统</a>和 <a href="guide/index.html">玩法指南</a>。</p>
+        <p class="a">靠 <b class="emph-cyan">/pay</b> 转账货币，或去商店跟服务器买卖。详情见 <a href="economy/index.html">经济系统</a>和 <a href="guide/index.html">玩法指南</a>。</p>
       </details>
     </div>
   </div>
