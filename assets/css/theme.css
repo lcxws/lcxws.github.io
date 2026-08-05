@@ -504,7 +504,7 @@ footer .note{margin-top:8px;opacity:.7;}
   .map-photo,.map-photo img,.landmark-card .lm-ico,.landmark-card .pos,
   .btn,.shot::after,.shot,.lightbox .close,.lightbox .arrow,.to-top,.nav-links a,.toc a,
   .link,.faq-item,.faq-item summary,.faq-item summary::before,.lb-table tbody tr,footer .note a,
-  .tiltable,.panel > .glow,#scroll-progress,.drag-ph{
+  .tiltable,.panel > .glow,#scroll-progress{
     transition:none!important;
   }
   .btn:hover::after,.status-dot.on{animation:none!important;}
@@ -672,5 +672,8 @@ footer .note a:hover{color:var(--cyan);text-shadow:0 0 10px rgba(0,212,255,.6);}
 .is-sortable > .panel:hover::after{opacity:.75;transform:none;}
 .is-sortable > .gate-card::after,.is-sortable > .econ-step::after{content:none;}
 .drag-ph{border:2px dashed var(--line-strong);border-radius:var(--radius);background:rgba(0,212,255,.06);}
+.is-sortable > .panel.is-swap{border-color:var(--cyan);box-shadow:0 0 0 2px rgba(0,212,255,.4), 0 0 26px rgba(0,212,255,.35);}
+.is-sortable > .panel.is-dragging{opacity:.4;
+  transition:transform .25s, box-shadow .25s, border-color .25s, opacity .25s;}
 .fly-clone{border-radius:var(--radius);
   box-shadow:0 30px 60px -20px rgba(0,0,0,.75), 0 0 34px rgba(0,212,255,.3);}

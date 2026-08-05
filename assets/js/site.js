@@ -385,6 +385,12 @@
     var grids = document.querySelectorAll('.grid, .econ-steps');
     var drag = null;
 
+    /* 清理可能残留的幽灵克隆（防止上次拖拽没删干净，盖在页面上） */
+    function clearGhost(){
+      var g = document.getElementById('bs-ghost');
+      if (g && g.parentNode) g.parentNode.removeChild(g);
+    }
+
     Array.prototype.forEach.call(grids, function(grid){
       var items = Array.prototype.filter.call(grid.children, function(c){
         return c.nodeType === 1 && c.classList.contains('panel');
@@ -403,16 +409,17 @@
       var grid = item.parentNode;
       if (!grid.classList.contains('is-sortable')) return;
 
+      clearGhost();   /* 防止上一次拖拽的幽灵残留 */
       drag = {
         grid: grid,
         item: item,
         moved: false,
         startX: e.clientX,
         startY: e.clientY,
-        ph: null,
+        fly: null,
         offX: 0,
         offY: 0,
-        origStyle: item.getAttribute('style')   /* 记住原内联样式，落位后恢复 */
+        target: null
       };
       document.body.style.userSelect = 'none';
       window.addEventListener('pointermove', onMove, {passive:false});
@@ -427,50 +434,56 @@
         if (Math.abs(dx) < 6 && Math.abs(dy) < 6) return;
         drag.moved = true;
         var item = drag.item;
-        draggedCard = item;              /* 探照灯跟随被拖的卡片 */
-        var rr = item.getBoundingClientRect();   /* 先量位置，再动 DOM，避免错位 */
-        /* 占位符顶替原位置 */
-        drag.ph = document.createElement('div');
-        drag.ph.className = 'drag-ph';
-        drag.ph.style.minHeight = rr.height + 'px';
-        drag.grid.insertBefore(drag.ph, item);
-        /* 本体挪到 body 上悬浮 */
-        item.classList.add('is-dragging', 'fly-clone');
-        document.body.appendChild(item);
-        item.style.cssText = '';
-        item.style.position = 'fixed';
-        item.style.width = rr.width + 'px';
-        item.style.height = rr.height + 'px';
-        item.style.left = rr.left + 'px';
-        item.style.top = rr.top + 'px';
-        item.style.margin = '0';
-        item.style.zIndex = '999';
-        item.style.pointerEvents = 'none';
-        item.style.opacity = '.97';
-        item.style.transform = 'rotate(2deg) scale(1.02)';
-        item.style.transition = 'none';
+        var rr = item.getBoundingClientRect();
+        /* 幽灵克隆体：跟手漂浮，真卡留在网格里变半透明 */
+        var fly = item.cloneNode(true);
+        fly.id = 'bs-ghost';
+        fly.className = item.className + ' fly-clone';
+        fly.setAttribute('aria-hidden','true');
+        document.body.appendChild(fly);
+        fly.style.cssText = '';
+        fly.style.position = 'fixed';
+        fly.style.width = rr.width + 'px';
+        fly.style.height = rr.height + 'px';
+        fly.style.left = rr.left + 'px';
+        fly.style.top = rr.top + 'px';
+        fly.style.margin = '0';
+        fly.style.zIndex = '999';
+        fly.style.pointerEvents = 'none';
+        fly.style.opacity = '.97';
+        /* 拿起：弹性放大，磁吸到手边 */
+        fly.style.transform = 'scale(1.06) rotate(2deg)';
+        fly.style.transition = 'transform .28s cubic-bezier(.34,1.56,.64,1), box-shadow .28s ease-out';
+        fly.style.willChange = 'transform';
+        drag.fly = fly;
+        draggedCard = fly;             /* 探照灯跟随幽灵 */
+        item.classList.add('is-dragging');
         drag.offX = e.clientX - rr.left;
         drag.offY = e.clientY - rr.top;
       }
-      drag.item.style.left = (e.clientX - drag.offX) + 'px';
-      drag.item.style.top = (e.clientY - drag.offY) + 'px';
+      var fly = drag.fly;
+      fly.style.left = (e.clientX - drag.offX) + 'px';
+      fly.style.top = (e.clientY - drag.offY) + 'px';
 
-      var target = document.elementFromPoint(e.clientX, e.clientY);
-      if (target){
-        target = target.closest('.panel');
-        if (target && target !== drag.item && target.parentNode === drag.grid){
-          var tr = target.getBoundingClientRect();
-          if (e.clientY > tr.top + tr.height / 2){
-            drag.grid.insertBefore(drag.ph, target.nextSibling);
-          } else {
-            drag.grid.insertBefore(drag.ph, target);
-          }
+      /* 交换式排序：压在谁身上，就和谁换位置（两张真卡瞬间互换，不飞越） */
+      var el = document.elementFromPoint(e.clientX, e.clientY);
+      var P = el ? el.closest('.panel') : null;
+      if (P && P !== drag.item && P.parentNode === drag.grid && P !== drag.target){
+        var kids = Array.prototype.slice.call(drag.grid.children);
+        var ii = kids.indexOf(drag.item), ti = kids.indexOf(P);
+        if (ii > -1 && ti > -1){
+          kids[ii] = P;
+          kids[ti] = drag.item;
+          kids.forEach(function(k){ drag.grid.appendChild(k); });
+          if (drag.target && drag.target !== P) drag.target.classList.remove('is-swap');
+          drag.target = P;
+          P.classList.add('is-swap');
         }
       }
       e.preventDefault();
     }
 
-    function onUp(){
+    function onUp(e){
       if (!drag) return;
       var d = drag;
       drag = null;
@@ -481,16 +494,27 @@
       document.body.style.userSelect = '';
 
       if (!d.moved){
+        if (d.fly && d.fly.parentNode) d.fly.remove();
         return;
       }
-      /* 落位：放回占位符位置，恢复原内联样式 */
-      if (d.ph && d.ph.parentNode === d.grid){
-        d.grid.insertBefore(d.item, d.ph);
-        d.ph.remove();
+
+      if (d.target) d.target.classList.remove('is-swap');
+      d.item.classList.remove('is-dragging');   /* 真卡淡回不透明 */
+
+      /* 放下动画：幽灵飞回真卡所在格子，缩小淡出 */
+      var fly = d.fly;
+      if (fly && fly.parentNode){
+        var slot = d.item.getBoundingClientRect();
+        var fr = fly.getBoundingClientRect();
+        var dx = slot.left - fr.left, dy = slot.top - fr.top;
+        fly.style.transition = 'transform .3s cubic-bezier(.34,1.56,.64,1), opacity .3s ease-out';
+        fly.style.transform = 'translate(' + dx + 'px,' + dy + 'px) scale(.92)';
+        fly.style.opacity = '0';
+        (function(f){
+          setTimeout(function(){ if (f.parentNode) f.remove(); }, 330);
+        })(fly);
       }
-      if (d.origStyle != null) d.item.setAttribute('style', d.origStyle);
-      else d.item.removeAttribute('style');
-      d.item.classList.remove('is-dragging', 'fly-clone');
+
       /* 拖拽结束后抑制这次点击（防止误触卡片里的链接） */
       document.addEventListener('click', function(ev){
         ev.preventDefault();
