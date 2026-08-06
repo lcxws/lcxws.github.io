@@ -57,13 +57,59 @@
       <p style="margin-top:18px;color:var(--muted);font-size:14.5px;">
         服务器保持在线，通常常驻 3~5 位老朋友，盖房子、造机器、聊聊天。
       </p>
-      <div class="status-note" style="margin-top:16px;">⚠ 本页为静态示意，数据不实时刷新，仅展示页面风格。</div>
+      <div class="status-note" style="margin-top:16px;">优先连接本机 PerfMonitor 接口展示实时数据；接口不可用时显示示意内容。</div>
     </div>
     <div class="grid g-4 center-box w900" style="margin-top:24px;">
       <div class="panel info-card reveal"><div class="k">🟢 当前状态</div><div class="v">运行中</div></div>
       <div class="panel info-card reveal" data-delay="1"><div class="k">📶 在线示意</div><div class="v">3~5 人</div></div>
       <div class="panel info-card reveal" data-delay="2"><div class="k">🕰️ 延迟示意</div><div class="v">良好</div></div>
       <div class="panel info-card reveal" data-delay="3"><div class="k">⏱️ 开服时长</div><div class="v">2 年</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- 实时监控 -->
+<section id="live" class="sec-deep">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <span class="eyebrow">LIVE</span>
+      <h2>实时监控</h2>
+      <p>直连 PerfMonitor 接口 · 自动检测或手动指定地址</p>
+    </div>
+    <div class="panel center-box reveal" id="live-config" style="padding:18px 22px;margin-bottom:20px;">
+      <div class="live-form">
+        <input type="text" id="lc-ip" placeholder="服务器 IP / 域名">
+        <input type="number" id="lc-port" placeholder="端口" min="1" max="65535">
+        <button type="button" id="lc-connect">连接</button>
+        <button type="button" id="lc-scan" class="ghost">自动检测</button>
+        <div class="lc-status" id="lc-status"></div>
+      </div>
+    </div>
+    <p class="reveal text-center" id="live-msg" style="color:var(--muted);font-size:13px;">正在检测本机接口…</p>
+    <div class="panel center-box reveal" id="live-box" style="display:none;padding:32px;">
+      <div style="display:flex;gap:14px;flex-wrap:wrap;align-items:center;justify-content:space-between;margin-bottom:20px;">
+        <div class="status-pill"><span class="status-dot on"></span>已连接 · 实时数据</div>
+        <span id="live-meta" style="font-size:12.5px;color:var(--muted);"></span>
+      </div>
+      <div class="grid g-4">
+        <div class="panel info-card"><div class="k">🟢 TPS</div><div class="v" id="lv-tps">-</div></div>
+        <div class="panel info-card"><div class="k">👥 在线人数</div><div class="v" id="lv-players">-</div></div>
+        <div class="panel info-card"><div class="k">🧟 实体数量</div><div class="v" id="lv-entities">-</div></div>
+        <div class="panel info-card"><div class="k">🗺️ 加载区块</div><div class="v" id="lv-chunks">-</div></div>
+      </div>
+      <div style="margin-top:20px;">
+        <div style="font-weight:900;color:var(--foam);font-size:14px;margin-bottom:8px;">内存使用</div>
+        <div class="status-bar"><i id="lv-membar" style="width:0%;"></i></div>
+        <div class="status-note" id="lv-memtext" style="margin-top:8px;">-</div>
+      </div>
+      <div style="margin-top:22px;">
+        <div style="font-weight:900;color:var(--foam);font-size:14px;margin-bottom:8px;">在线玩家</div>
+        <div id="lv-playernames" style="color:var(--muted);font-size:14px;">-</div>
+      </div>
+      <div style="margin-top:22px;">
+        <div style="font-weight:900;color:var(--foam);font-size:14px;margin-bottom:8px;">已加载世界</div>
+        <div id="lv-worlds" style="display:grid;gap:10px;"></div>
+      </div>
     </div>
   </div>
 </section>

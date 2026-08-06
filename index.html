@@ -3,327 +3,122 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Blue Shark · 主页</title>
-<meta name="description" content="Blue Shark —— 一个开了两年的熟人轻模组生存服务器。轻松生存 × 红石技术，1.20.x · Mohist 服务端。私人服务器，纯介绍展示。">
-<link rel="icon" type="image/jpeg" href="images/server-icon.jpg">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Noto+Sans+SC:wght@400;500;700;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/css/theme.css">
+<title>LCXWS · 个人主页</title>
+<meta name="description" content="LCXWS 的个人主页——我的小世界。Blue Shark 服务器介绍等模块入口。">
+<style>
+  :root{--blue:#151EC5;--red:#D60021;--white:#fff;}
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html,body{height:100%;}
+  body{
+    background:#000;
+    color:#e8e8f0;
+    font-family:'Segoe UI','Noto Sans SC','Microsoft YaHei',system-ui,sans-serif;
+    overflow-x:hidden;
+    min-height:100vh;
+  }
+  a{color:inherit;text-decoration:none;}
+  [id]{scroll-margin-top:20px;}
+
+  /* ===== 背景光效：蓝 / 红 / 白 扫光 ===== */
+  .fx{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;}
+  .grid-lines{position:absolute;inset:0;opacity:.55;
+    background:
+      linear-gradient(rgba(255,255,255,.045) 1px,transparent 1px),
+      linear-gradient(90deg,rgba(255,255,255,.045) 1px,transparent 1px);
+    background-size:46px 46px;
+    -webkit-mask-image:radial-gradient(circle at 50% 40%,#000 0%,transparent 78%);
+            mask-image:radial-gradient(circle at 50% 40%,#000 0%,transparent 78%);}
+  .glow{position:absolute;border-radius:50%;filter:blur(90px);opacity:.4;animation:pulse 7s ease-in-out infinite;}
+  .glow.blue{width:440px;height:440px;background:var(--blue);top:-90px;left:-90px;}
+  .glow.red{width:500px;height:500px;background:var(--red);bottom:-140px;right:-110px;animation-delay:-3.5s;}
+  .glow.white{width:300px;height:300px;background:#fff;top:38%;left:50%;transform:translate(-50%,-50%);opacity:.1;}
+  @keyframes pulse{0%,100%{opacity:.28;transform:scale(1);}50%{opacity:.5;transform:scale(1.16);}}
+  .beam{position:absolute;top:-25%;height:150%;width:230px;filter:blur(72px);opacity:.55;mix-blend-mode:screen;will-change:transform;}
+  .beam.blue{background:linear-gradient(180deg,transparent,var(--blue) 50%,transparent);}
+  .beam.red{background:linear-gradient(180deg,transparent,var(--red) 50%,transparent);}
+  .beam.white{background:linear-gradient(180deg,transparent,rgba(255,255,255,.9) 50%,transparent);}
+  .beam.a{animation:sweepA 11s linear infinite;}
+  .beam.b{animation:sweepB 16s linear infinite;animation-delay:-6s;}
+  .beam.c{animation:sweepC 9s linear infinite;animation-delay:-3s;}
+  @keyframes sweepA{0%{left:-22%;transform:rotate(18deg) scaleX(.85);}100%{left:112%;transform:rotate(18deg) scaleX(.85);}}
+  @keyframes sweepB{0%{left:112%;transform:rotate(-22deg) scaleX(.6);}100%{left:-22%;transform:rotate(-22deg) scaleX(.6);}}
+  @keyframes sweepC{0%{left:-22%;transform:rotate(42deg) scaleX(.5);}100%{left:112%;transform:rotate(42deg) scaleX(.5);}}
+
+  /* ===== 内容 ===== */
+  .wrap{position:relative;z-index:2;max-width:1020px;margin:0 auto;padding:84px 24px 40px;}
+  .avatar{width:128px;height:128px;border-radius:50%;object-fit:cover;display:block;margin:0 auto 24px;
+    border:3px solid var(--white);
+    box-shadow:0 0 26px rgba(21,30,197,.75),0 0 56px rgba(214,0,33,.4);}
+  h1{
+    font-size:clamp(42px,8vw,80px);font-weight:900;text-align:center;letter-spacing:.08em;
+    background:linear-gradient(90deg,#fff 0%,#aab0ff 32%,#fff 52%,#ffb9c4 78%,#fff 100%);
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+    filter:drop-shadow(0 0 16px rgba(21,30,197,.95)) drop-shadow(0 0 34px rgba(214,0,33,.55));}
+  .tagline{text-align:center;color:#9aa0c8;margin-top:14px;font-size:16px;letter-spacing:.28em;text-transform:uppercase;}
+  .divider{width:220px;height:2px;margin:38px auto;border-radius:2px;
+    background:linear-gradient(90deg,transparent,var(--blue),var(--white),var(--red),transparent);}
+
+  /* ===== 模块卡 ===== */
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:22px;}
+  .card{position:relative;display:block;color:inherit;border:1px solid rgba(255,255,255,.14);overflow:hidden;
+    background:linear-gradient(160deg,rgba(21,30,197,.16),rgba(0,0,0,.55) 62%);
+    border-radius:18px;padding:22px 20px 20px;backdrop-filter:blur(6px);
+    transition:transform .25s,border-color .25s,box-shadow .25s;}
+  .card:hover{transform:translateY(-6px);border-color:rgba(255,255,255,.4);
+    box-shadow:0 20px 44px -18px rgba(21,30,197,.75),0 0 28px rgba(214,0,33,.35);}
+  .card .corner{position:absolute;top:14px;left:14px;width:46px;height:46px;border-radius:10px;object-fit:cover;
+    border:2px solid rgba(255,255,255,.8);box-shadow:0 0 16px rgba(21,30,197,.85);}
+  .card .go{position:absolute;top:16px;right:16px;font-size:12px;font-weight:900;color:#fff;letter-spacing:.1em;
+    border:1px solid rgba(255,255,255,.35);padding:5px 9px;border-radius:6px;transition:.2s;}
+  .card:hover .go{background:var(--white);color:#000;}
+  .card h3{margin:66px 0 8px;font-size:20px;font-weight:900;color:#fff;letter-spacing:.03em;}
+  .card p{font-size:13.5px;color:#aab0d0;line-height:1.75;}
+  .card .shine{position:absolute;inset:auto -30% -42% auto;width:72%;height:125%;border-radius:50%;
+    background:radial-gradient(circle,rgba(21,30,197,.4),transparent 70%);transition:.3s;}
+  .card:hover .shine{transform:scale(1.18);}
+  .card.soon{opacity:.55;pointer-events:none;}
+
+  footer{position:relative;z-index:2;text-align:center;color:#565c86;font-size:12.5px;padding:12px 0 44px;letter-spacing:.18em;}
+
+  @media (prefers-reduced-motion:reduce){.glow,.beam{animation:none!important;}}
+  @media (max-width:560px){.wrap{padding-top:64px;}h1{font-size:40px;}}
+</style>
 </head>
 <body>
 
-<canvas id="ocean-fx" aria-hidden="true"></canvas>
-
-<!-- ================= 导航 ================= -->
-<nav class="site-nav">
-  <div class="nav-inner wrap">
-    <a class="brand" href="index.html"><img src="images/server-icon.jpg" alt="Blue Shark 图标">BLUE&nbsp;SHARK</a>
-    <div class="nav-links">
-      <a href="index.html" class="active">主页</a>
-      <a href="map/index.html">地图</a>
-      <a href="members/index.html">成员</a>
-      <a href="economy/index.html">经济</a>
-      <a href="mods/index.html">模组</a>
-    </div>
-  </div>
-</nav>
-
-<!-- ================= Hero ================= -->
-<header class="hero">
-  <div class="wrap">
-    <div class="hero-badge">
-      <img class="hero-ico" src="images/server-icon.jpg" alt="Blue Shark 图标">
-      <span class="hero-overline">私人小服 · 深海里的老朋友</span>
-    </div>
-    <h1>BLUE <span class="dot">S</span>HARK</h1>
-    <p class="hero-tag">熟人小服 · 轻松生存 · 红石与生活</p>
-    <p class="hero-desc">
-      一条开了<b>两年</b>的 <b>Java 1.20.x</b> 轻模组生存服务器，
-      通过<b>皎月连</b>内网穿透把三五好友聚在同一片自然地形世界里——
-      盖房子、造机器、聊聊天，偶尔打打 PvP。不对外开放招募，纯粹记录这片小海。
-    </p>
-    <div class="hero-cta">
-      <a class="btn btn-primary" href="#gates">▶ 进入各版块</a>
-      <a class="btn btn-ghost" href="#info">◆ 服务器信息</a>
-    </div>
-  </div>
-  <div class="hero-scroll">▼</div>
-  <div class="wave"><svg viewBox="0 0 1440 70" preserveAspectRatio="none" aria-hidden="true">
-    <path d="M0,42 C220,70 420,8 720,28 C1020,48 1240,16 1440,44 L1440,70 L0,70 Z" fill="#020a18" opacity=".9"/>
-  </svg></div>
-</header>
-
-<!-- ================= 关于 ================= -->
-<section id="about" class="sec-mid">
-  <div class="wrap">
-    <div class="sec-head reveal">
-      <span class="eyebrow">ABOUT</span>
-      <h2>关于 Blue Shark</h2>
-      <p>开服两年，始终是一条小小的、认真的生存之船</p>
-    </div>
-    <div class="grid g-2" style="align-items:stretch;">
-      <div class="panel reveal story-card">
-        <h3>它是怎么来的</h3>
-        <p>
-          Blue Shark 诞生于两年前的一个想法：不要花哨的氪金、不要复杂的框架，
-          就几个朋友在 <b class="emph">Minecraft 原版自然地形</b>里安安静静地玩下去。
-        </p>
-        <p>
-          我们用的服务端是 <b class="emph">Mohist</b>——同时支持 Bukkit 插件与 Forge 模组，
-          在这个基础上装了 <b class="emph">10~30 个轻量模组</b>。不追求华丽大改，
-          只让生存多一些方便、多一些乐趣，玩法依然是熟悉的味道。
-        </p>
-        <p>
-          服务器常驻 <b class="emph">3~5 人</b>，靠 <b class="emph">皎月连内网穿透</b>在朋友们之间相连，
-          不公开招募、不对外开放——它是一片只属于这个小圈子的海。
-        </p>
-        <p class="story-link"><a class="link" href="about/index.html">关于本站 ›</a></p>
-      </div>
-      <div class="grid" style="gap:16px;align-content:start;">
-        <div class="panel reveal stat-card" data-delay="1">
-          <span class="stat-ico">⏳</span>
-          <div><div class="stat-num" data-count="2">0</div>
-          <div class="stat-cap">年开服历史</div></div>
-        </div>
-        <div class="panel reveal stat-card" data-delay="2">
-          <span class="stat-ico">👥</span>
-          <div><div class="stat-num">3~5</div>
-          <div class="stat-cap">常驻玩家 · 熟人圈子</div></div>
-        </div>
-        <div class="panel reveal stat-card" data-delay="3">
-          <span class="stat-ico">🧱</span>
-          <div><div class="stat-num">1.20.x</div>
-          <div class="stat-cap">Java 版 · 自然地形生成</div></div>
-        </div>
-        <div class="panel reveal" data-delay="3" style="padding:22px;background:rgba(0,212,255,.06);border-style:dashed;">
-          <p style="font-weight:700;color:var(--cyan-soft);">「熟人小服 · 轻松生存」</p>
-          <small style="color:var(--muted);">一句话定位 —— 不折腾，玩得开心就好。</small>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ================= 子页入口大卡片 ================= -->
-<section id="gates" class="sec-deep">
-  <div class="wrap">
-    <div class="sec-head reveal">
-      <span class="eyebrow">SITE MAP</span>
-      <h2>这片海，还有这些角落</h2>
-      <p>点击任意卡片，跳转到对应的独立页面</p>
-    </div>
-    <div class="grid g-3">
-      <a class="panel gate-card reveal" href="map/index.html">
-        <span class="go">OPEN ▸</span>
-        <div class="g-ico">🗺️</div>
-        <h3>世界地图</h3>
-        <p>出生点、主城与各基地的地标坐标，还有这片海的航拍视角。</p>
-      </a>
-      <a class="panel gate-card reveal" data-delay="1" href="members/index.html">
-        <span class="go">OPEN ▸</span>
-        <div class="g-ico">🐟</div>
-        <h3>船员成员</h3>
-        <p>住在这片海里的常驻玩家——头衔、擅长什么，都写在自我介绍里。</p>
-      </a>
-      <a class="panel gate-card reveal" data-delay="2" href="economy/index.html">
-        <span class="go">OPEN ▸</span>
-        <div class="g-ico">💰</div>
-        <h3>经济系统</h3>
-        <p>动态价格商店、/pay 玩家间转账，以及未来的独立市场。</p>
-      </a>
-      <a class="panel gate-card reveal" href="mods/index.html">
-        <span class="go">OPEN ▸</span>
-        <div class="g-ico">⚙️</div>
-        <h3>模组与插件</h3>
-        <p>Mohist 双生态上跑的轻量模组和 Bukkit 插件清单。</p>
-      </a>
-      <a class="panel gate-card reveal" data-delay="1" href="status/index.html">
-        <span class="go">OPEN ▸</span>
-        <div class="g-ico">📡</div>
-        <h3>服务器状态</h3>
-        <p>当前状态、版本与服务端速览——一片海的运行示意。</p>
-      </a>
-      <a class="panel gate-card reveal" data-delay="2" href="leaderboard/index.html">
-        <span class="go">OPEN ▸</span>
-        <div class="g-ico">🏆</div>
-        <h3>排行榜</h3>
-        <p>经济与在线时长的排行，数据为示意展示。</p>
-      </a>
-      <a class="panel gate-card reveal" data-delay="3" href="guide/index.html">
-        <span class="go">OPEN ▸</span>
-        <div class="g-ico">🧭</div>
-        <h3>玩法指南</h3>
-        <p>经济、传送与连接的已确认说明，其余内容待补充。</p>
-      </a>
-      <a class="panel gate-card reveal" href="about/index.html">
-        <span class="go">OPEN ▸</span>
-        <div class="g-ico">📖</div>
-        <h3>关于本站</h3>
-        <p>站点由来、技术栈与制作者——这片海从哪来。</p>
-      </a>
-      <div class="panel gate-card reveal" data-delay="2" style="justify-content:center;align-items:center;display:flex;flex-direction:column;text-align:center;">
-        <div class="g-ico">🌊</div>
-        <h3>更多正在酝酿</h3>
-        <p>这片海还在生长，新的角落会陆续浮出水面。</p>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ================= 玩法特色 ================= -->
-<section id="features" class="sec-mid">
-  <div class="wrap">
-    <div class="sec-head reveal">
-      <span class="eyebrow">FEATURES</span>
-      <h2>玩法特色</h2>
-      <p>轻松与硬核并存，自由是这里的主题</p>
-    </div>
-    <div class="grid g-3">
-      <div class="panel feature-card reveal"><span class="tag">RELAX</span><div class="f-ico">🏡</div><h3>休闲养老</h3><p>慢节奏生存：种田、养动物、盖小房子。节奏自己定，忙完了一天进来发发呆也很舒服。</p></div>
-      <div class="panel feature-card reveal" data-delay="1"><span class="tag">TECH</span><div class="f-ico">⚙️</div><h3>红石与机械</h3><p>休闲之外也认真玩红石：自动化农场、运输系统、联动装置，把效率拉满。</p></div>
-      <div class="panel feature-card reveal" data-delay="2"><span class="tag">PVP</span><div class="f-ico">⚔️</div><h3>开放 PvP</h3><p>野外 PvP 完全开放。想切磋就来约战，打输了别气馁，大家都是熟人。</p></div>
-      <div class="panel feature-card reveal"><span class="tag">VANILLA+</span><div class="f-ico">🗺️</div><h3>自然地形</h3><p>保持 Minecraft 原生地形生成，配上 10~30 个轻模组，熟悉的风景与惊喜并存。</p></div>
-      <div class="panel feature-card reveal" data-delay="1"><span class="tag">FRIENDLY</span><div class="f-ico">🪦</div><h3>死亡保留背包</h3><p>死亡不掉落背包，冒险更从容。探索、摔死、被怪追，都可以优雅地重新出发。</p></div>
-      <div class="panel feature-card reveal" data-delay="2"><span class="tag">CASUAL</span><div class="f-ico">🎉</div><h3>偶尔约着玩</h3><p>不搞固定活动，兴致来了就约着一起建筑、一起挖矿、一起开荒，随性但认真。</p></div>
-    </div>
-  </div>
-</section>
-
-<!-- ================= 服务器信息 ================= -->
-<section id="info" class="sec-deep">
-  <div class="wrap">
-    <div class="sec-head reveal">
-      <span class="eyebrow">SERVER INFO</span>
-      <h2>服务器信息</h2>
-      <p>一组静态信息卡片，一眼看清这片海</p>
-    </div>
-    <div class="grid g-4">
-      <div class="panel info-card reveal"><div class="k">🟩 游戏版本</div><div class="v">JAVA 1.20.X</div></div>
-      <div class="panel info-card reveal" data-delay="1"><div class="k">🧰 服务端</div><div class="v small">Mohist<br>Bukkit + Forge</div></div>
-      <div class="panel info-card reveal" data-delay="2"><div class="k">📦 模组规模</div><div class="v">10~30 个</div></div>
-      <div class="panel info-card reveal" data-delay="3"><div class="k">🕰️ 开服时长</div><div class="v">2 年</div></div>
-      <div class="panel info-card reveal"><div class="k">👥 常驻玩家</div><div class="v">3~5 人</div></div>
-      <div class="panel info-card reveal" data-delay="1"><div class="k">☠️ 死亡掉落</div><div class="v">保留背包</div></div>
-      <div class="panel info-card reveal" data-delay="2"><div class="k">⚔️ 野外 PvP</div><div class="v">开放</div></div>
-      <div class="panel info-card reveal" data-delay="3"><div class="k">🔌 连接方式</div><div class="v small">皎月连 · 内网穿透<br>私人服务器</div></div>
-    </div>
-  </div>
-</section>
-
-<!-- ================= 规则 ================= -->
-<section id="rules" class="sec-mid">
-  <div class="wrap">
-    <div class="sec-head reveal">
-      <span class="eyebrow">RULES</span>
-      <h2>服务器规则</h2>
-      <p>熟人服的规则很简单——少设卡，不伤感情</p>
-    </div>
-    <div class="rule-card panel ok reveal">
-      <span class="rule-badge">允许</span>
-      <div><h3>X-ray · 挖矿机器人 · 各类辅助</h3><p>完全允许，不刻意设防。既然是熟人服，就大大方方地玩，把限制降到最低。</p></div>
-    </div>
-    <div class="rule-card panel warn reveal" data-delay="1">
-      <span class="rule-badge">不建议</span>
-      <div><h3>飞行 · 偷窃与破坏 · 刷物品</h3><p>不禁止，但真心不建议。这些东西会让一起玩的朋友失去乐趣，也容易伤了和气。</p></div>
-    </div>
-    <div class="rule-card panel no reveal" data-delay="2">
-      <span class="rule-badge">禁止</span>
-      <div><h3>人身攻击</h3><p>玩归玩，闹归闹，别拿言语伤人心。这条是底线，谁都不例外。</p></div>
-    </div>
-  </div>
-</section>
-
-<!-- ================= FAQ ================= -->
-<section id="faq" class="sec-mid">
-  <div class="wrap">
-    <div class="sec-head reveal">
-      <span class="eyebrow">FAQ</span>
-      <h2>常见问题</h2>
-      <p>点开就能看到答案的小问答</p>
-    </div>
-    <div class="faq-list">
-      <details class="faq-item reveal">
-        <summary>怎么加入服务器？</summary>
-        <p class="a">Blue Shark 是私人小服，通过 <b class="emph">皎月连内网穿透</b>连接，连接地址只给熟悉的朋友，不对外公开招募。</p>
-      </details>
-      <details class="faq-item reveal" data-delay="1">
-        <summary>死亡会掉背包吗？</summary>
-        <p class="a">不会。服务器开启<b class="emph">死亡保留背包</b>，探索、摔死、被怪追，都可以优雅地重新出发。</p>
-      </details>
-      <details class="faq-item reveal" data-delay="2">
-        <summary>野外可以 PvP 吗？</summary>
-        <p class="a">完全开放。想切磋就来约战，打输了别气馁，大家都是熟人。</p>
-      </details>
-      <details class="faq-item reveal">
-        <summary>用了哪些模组和插件？</summary>
-        <p class="a">服务端是 <b class="emph">Mohist</b>，跑着 16 个轻量 Forge 模组和 14 个 Bukkit 插件（大部分自研）。完整清单见 <a href="mods/index.html">模组与插件</a>页。</p>
-      </details>
-      <details class="faq-item reveal" data-delay="1">
-        <summary>玩家之间怎么交易？</summary>
-        <p class="a">靠 <b class="emph-cyan">/pay</b> 转账货币，或去商店跟服务器买卖。详情见 <a href="economy/index.html">经济系统</a>和 <a href="guide/index.html">玩法指南</a>。</p>
-      </details>
-    </div>
-  </div>
-</section>
-
-<!-- ================= 截图 ================= -->
-<section id="gallery" class="sec-deep">
-  <div class="wrap">
-    <div class="sec-head reveal">
-      <span class="eyebrow">GALLERY</span>
-      <h2>服务器相册</h2>
-      <p>这片海的随手记录</p>
-    </div>
-    <div class="gallery">
-      <figure class="shot reveal"><img src="images/AB9D8D924A62959480179D466337F12B.png" alt="服务器截图 1" loading="lazy"></figure>
-      <figure class="shot reveal" data-delay="1"><img src="images/4600E5BCAF2EE46F6BDD09B8BC067973.png" alt="服务器截图 2" loading="lazy"></figure>
-      <figure class="shot reveal" data-delay="2"><img src="images/FFC65D585410F7878F9226E1678725CB.png" alt="服务器截图 3" loading="lazy"></figure>
-      <figure class="shot reveal" data-delay="3"><img src="images/6F338D06A442CF2945E64CD1F01FC664.png" alt="服务器截图 4" loading="lazy"></figure>
-      <figure class="shot reveal"><img src="images/2026-08-05_22.24.36.png" alt="服务器截图 5" loading="lazy"></figure>
-      <figure class="shot reveal" data-delay="1"><img src="images/2026-08-05_23.07.17.png" alt="服务器截图 6" loading="lazy"></figure>
-    </div>
-  </div>
-</section>
-
-<!-- ================= 交流 ================= -->
-<section id="contact" class="sec-mid">
-  <div class="wrap">
-    <div class="sec-head reveal">
-      <span class="eyebrow">COMMUNITY</span>
-      <h2>这里的人怎么交流</h2>
-    </div>
-    <div class="panel contact-card reveal">
-      <h3>🔊 聊天靠声音</h3>
-      <p>平时大家在 QQ 语音里唠嗑，偶尔也会用轻量语音模组，在游戏里边走边聊、身临其境。</p>
-      <div class="contact-pills">
-        <span class="pill">💬 QQ 语音通话</span>
-        <span class="pill">🎙️ 轻量语音模组</span>
-        <span class="pill">⛏️ 游戏内聊天</span>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ================= 页脚 ================= -->
-<footer>
-  <span class="pixel">BLUE SHARK · 2026</span>
-  私人服务器介绍站 · 纯展示，不对外招募
-  <div class="note">
-    <a href="index.html">主页</a> · <a href="map/index.html">地图</a> · <a href="members/index.html">成员</a> · <a href="economy/index.html">经济</a> · <a href="mods/index.html">模组</a> · <a href="status/index.html">状态</a> · <a href="leaderboard/index.html">排行</a> · <a href="guide/index.html">指南</a> · <a href="about/index.html">关于</a>
-  </div>
-</footer>
-
-<!-- 灯箱 -->
-<div class="lightbox" id="lightbox">
-  <button class="close" id="lbClose">×</button>
-  <button class="arrow prev" id="lbPrev">‹</button>
-  <img id="lbImg" src="" alt="大图预览">
-  <button class="arrow next" id="lbNext">›</button>
-  <div class="cap" id="lbCap"></div>
+<div class="fx" aria-hidden="true">
+  <div class="grid-lines"></div>
+  <div class="glow blue"></div>
+  <div class="glow red"></div>
+  <div class="glow white"></div>
+  <div class="beam blue a"></div>
+  <div class="beam red b"></div>
+  <div class="beam white c"></div>
 </div>
 
-<button class="to-top" title="回到顶部">↑</button>
-<script src="assets/js/site.js"></script>
+<div class="wrap">
+  <img class="avatar" src="avatar.png" alt="LCXWS 头像">
+  <h1>LCXWS</h1>
+  <p class="tagline">Coding · Minecraft · 我的小世界</p>
+  <div class="divider"></div>
+
+  <div class="grid">
+    <a class="card" href="blueshark/index.html">
+      <span class="go">OPEN ▸</span>
+      <img class="corner" src="blueshark/images/server-icon.jpg" alt="Blue Shark">
+      <div class="shine"></div>
+      <h3>Blue Shark 服务器</h3>
+      <p>一条开了两年的熟人轻模组生存小服。点击进入完整的 Blue Shark 介绍站——地图、成员、经济、模组、状态实时监控。</p>
+    </a>
+    <a class="card soon" href="#">
+      <span class="go">SOON</span>
+      <div class="shine"></div>
+      <h3>更多模块</h3>
+      <p>正在酝酿中，敬请期待。</p>
+    </a>
+  </div>
+</div>
+
+<footer>LCXWS · 2026</footer>
 </body>
 </html>

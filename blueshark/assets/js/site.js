@@ -12,6 +12,22 @@
   var REDUCED = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   var draggedCard = null;   /* 拖拽中的卡片（供探照灯跟随） */
 
+  /* PerfMonitor 接口配置（可配置）
+     固定地址优先级：URL ?api=...  >  window.PERFMON_API（在 site.js 之前设置）
+     未固定地址时自动检测：记住的地址 > 127.0.0.1 > 10.6.22.1 > 扫描 192.168.1.1~254
+     端口：URL ?port=... 或 window.PERFMON_PORT 或默认 25566 */
+  var PINNED = null;
+  var PERFMON_PORT = 25566;
+  (function(){
+    var q = location.search;
+    var ma = q.match(/[?&]api=([^&]+)/);
+    var mp = q.match(/[?&]port=(\d+)/);
+    if (ma) PINNED = decodeURIComponent(ma[1]).replace(/\/+$/, '');
+    else if (window.PERFMON_API) PINNED = String(window.PERFMON_API).replace(/\/+$/, '');
+    var p = (mp && parseInt(mp[1], 10)) || parseInt(window.PERFMON_PORT, 10);
+    if (p && p > 0 && p < 65536) PERFMON_PORT = p;
+  })();
+
   /* ---------- 滚动显现 ---------- */
   var io = new IntersectionObserver(function(entries){
     entries.forEach(function(e){
@@ -317,6 +333,317 @@
     requestAnimationFrame(frame);
   }
   initSpotlight();
+
+  /* ============================================================
+     实时数据引擎（状态页 + 主页共用）
+     - 自动检测：记住的地址 > 127.0.0.1 > 10.6.22.1 > 扫描 192.168.1.1~254
+     - 1 秒轮询（有防重入保护），数据更顺滑
+     - 手动键入 IP / 端口模块（状态页）
+     ============================================================ */
+  var LIVE_RENDER = null;    /* 页面渲染回调：LIVE_RENDER(数据)；null 表示回退 */
+  var ACTIVE = null;         /* 寻到端口后锁定的接口地址 */
+  var lastData = null;       /* 最后一份成功数据：未回新数据时继续显示它 */
+  var lastFetch = 0;         /* 上次真正请求的时间戳 */
+  var FETCH_MS = 5000;       /* 数据每 5s 取一次（与服务端刷新对齐），显示仍每 1s 刷新 */
+  var FAILS = 0;
+  var detecting = false;
+  var scannedOnce = false;
+  var fetching = false;
+
+  function savedApi(){ try { return localStorage.getItem('perfmon_api') || null; } catch(e){ return null; } }
+  function saveApi(url){ try { localStorage.setItem('perfmon_api', url); } catch(e){} }
+  function clearApi(){ try { localStorage.removeItem('perfmon_api'); } catch(e){} }
+
+  function getMetrics(url){
+    var ctrl = new AbortController();
+    var timer = setTimeout(function(){ ctrl.abort(); }, 1500);
+    return fetch(url + '/metrics', {cache:'no-store', signal:ctrl.signal})
+      .then(function(r){
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        return r.json();
+      })
+      .then(function(d){ clearTimeout(timer); return d; })
+      .catch(function(err){ clearTimeout(timer); throw err; });
+  }
+
+  /* 探测单个地址是否可用，返回该地址或 null */
+  function probe(url){
+    return new Promise(function(resolve){
+      var ctrl = new AbortController();
+      var timer = setTimeout(function(){ ctrl.abort(); }, 700);
+      fetch(url + '/metrics', {cache:'no-store', signal:ctrl.signal})
+        .then(function(r){ if (!r.ok) throw new Error(); return r.json(); })
+        .then(function(d){ clearTimeout(timer); resolve(d && typeof d.tps === 'number' ? url : null); })
+        .catch(function(){ clearTimeout(timer); resolve(null); });
+    });
+  }
+  /* 依序探测，返回第一个可用地址 */
+  function probeSeq(urls){
+    return urls.reduce(function(p, u){
+      return p.then(function(found){ return found || probe(u); });
+    }, Promise.resolve(null));
+  }
+  /* 并发扫描 192.168.1.1~254 */
+  function scanLan(){
+    var urls = [];
+    for (var i = 1; i <= 254; i++) urls.push('http://192.168.1.' + i + ':' + PERFMON_PORT);
+    return new Promise(function(resolve){
+      var idx = 0, active = 0, done = false, CONC = 16;
+      function next(){
+        if (done) return;
+        if (idx >= urls.length){ if (active === 0) resolve(null); return; }
+        var u = urls[idx++];
+        active++;
+        probe(u).then(function(found){
+          active--;
+          if (found){ if (!done){ done = true; resolve(found); } return; }
+          next();
+        });
+      }
+      for (var k = 0; k < CONC; k++) next();
+    });
+  }
+
+  /* 快速候选：记住的地址 + 本机 */
+  function fastCandidates(){
+    var list = [];
+    var s = savedApi();
+    if (s) list.push(s);
+    list.push('http://127.0.0.1:' + PERFMON_PORT);
+    return list.filter(function(u, i, a){ return u && a.indexOf(u) === i; });
+  }
+  /* 完整候选：快速候选 + 10.6.22.1（全量检测用） */
+  function fullCandidates(){
+    var list = fastCandidates();
+    list.push('http://10.6.22.1:' + PERFMON_PORT);
+    return list.filter(function(u, i, a){ return u && a.indexOf(u) === i; });
+  }
+  function runDetect(full){
+    var list = full ? fullCandidates() : fastCandidates();
+    return probeSeq(list).then(function(found){
+      if (found) return found;
+      if (full) return scanLan();
+      return null;
+    });
+  }
+
+  function setActive(url){
+    ACTIVE = url;
+    FAILS = 0;
+    saveApi(url);
+    var st = document.getElementById('lc-status');
+    if (st) st.textContent = '已连接 ' + url;
+  }
+  function clearActive(){
+    ACTIVE = null;
+    FAILS = 0;
+    clearApi();
+    var st = document.getElementById('lc-status');
+    if (st) st.textContent = '连接中断，正在自动重试…';
+  }
+
+  function fmtUptime(sec){
+    sec = Math.max(0, Math.floor(sec || 0));
+    var d = Math.floor(sec / 86400), h = Math.floor(sec % 86400 / 3600);
+    var mm = Math.floor(sec % 3600 / 60), ss = sec % 60;
+    if (d > 0) return d + ' 天 ' + h + ' 小时 ' + mm + ' 分';
+    if (h > 0) return h + ' 小时 ' + mm + ' 分 ' + ss + ' 秒';
+    return mm + ' 分 ' + ss + ' 秒';
+  }
+  /* 实时运行时长：服务器快照 + 距快照的流逝时间，让计时器每秒递增 */
+  function liveUptime(d){
+    return (d.uptime_seconds || 0) + (Date.now() - (d.timestamp || Date.now())) / 1000;
+  }
+  function esc(s){
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){
+      return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+    });
+  }
+  function setTxt(id, v){
+    var el = document.getElementById(id);
+    if (el) el.textContent = v;
+  }
+  function paintTps(id, tps){
+    var el = document.getElementById(id);
+    if (!el) return;
+    el.textContent = (tps || 0).toFixed(2);
+    el.style.color = tps >= 19 ? '#2ee87c' : (tps >= 16 ? '#ffd54f' : '#ff6b6b');
+  }
+
+  /* 每 1 秒一帧：显示每秒刷新（用最后一份数据），真正请求每 5s 一次 */
+  function doFetch(){
+    fetching = true;
+    lastFetch = Date.now();
+    getMetrics(ACTIVE).then(function(d){
+      fetching = false;
+      FAILS = 0;
+      lastData = d;
+      LIVE_RENDER(d);
+    }, function(){
+      fetching = false;
+      FAILS++;
+      if (FAILS >= 3){ clearActive(); lastData = null; }
+      LIVE_RENDER(lastData);          /* 失败时也显示已有的最后数据 */
+    });
+  }
+
+  function tick(){
+    if (LIVE_RENDER == null) return;
+    if (ACTIVE){
+      /* 地址已锁定：到 5s 点才真正请求，其余 1s 帧用缓存数据渲染 */
+      if (!fetching && (lastData == null || Date.now() - lastFetch >= FETCH_MS)){
+        doFetch();
+      } else {
+        LIVE_RENDER(lastData);
+      }
+    } else {
+      if (detecting) return;
+      detecting = true;
+      probeSeq(fastCandidates()).then(function(found){
+        detecting = false;
+        if (found){ setActive(found); tick(); return; }
+        if (!scannedOnce){               /* 全量扫描只做一次，避免反复扫网段 */
+          scannedOnce = true;
+          scanLan().then(function(f2){
+            if (f2){ setActive(f2); tick(); }
+          });
+        }
+      });
+    }
+  }
+
+  /* ---------- 状态页实时监控 + 手动 IP/端口配置 ---------- */
+  function initLiveStatus(){
+    var box = document.getElementById('live-box');
+    if (!box) return;                       /* 仅状态页存在该区块 */
+    var msg = document.getElementById('live-msg');
+
+    LIVE_RENDER = function(d){
+      if (!d){
+        box.style.display = 'none';
+        if (msg){
+          msg.style.display = '';
+          msg.textContent = '未检测到 PerfMonitor 接口，当前展示为示意数据。';
+        }
+        return;
+      }
+      box.style.display = '';
+      if (msg) msg.style.display = 'none';
+
+      paintTps('lv-tps', d.tps);
+      setTxt('lv-players', d.online_players + ' / ' + d.max_players);
+      setTxt('lv-entities', String(d.total_entities));
+      setTxt('lv-chunks', String(d.total_chunks));
+
+      var m = d.memory;
+      if (m){
+        var mb = function(b){ return (b / 1048576).toFixed(0) + ' MB'; };
+        var bar = document.getElementById('lv-membar');
+        var pct = Math.min(100, m.used_percent || 0);
+        if (bar) bar.style.width = pct + '%';
+        setTxt('lv-memtext', mb(m.used) + ' / ' + mb(m.max) + '（' + (m.used_percent || 0).toFixed(1) + '%）');
+      }
+
+      setTxt('lv-playernames', d.players && d.players.length ? d.players.join('、') : '暂无玩家在线');
+
+      var meta = document.getElementById('live-meta');
+      if (meta){
+        var up = liveUptime(d);
+        var hh = String(Math.floor(up / 3600)).padStart(2, '0');
+        var mm = String(Math.floor(up % 3600 / 60)).padStart(2, '0');
+        var ss = String(Math.floor(up % 60)).padStart(2, '0');
+        meta.textContent = 'MC ' + (d.minecraft_version || '-')
+                + ' · 运行 ' + hh + ':' + mm + ':' + ss
+                + ' · ' + new Date(d.timestamp).toLocaleTimeString();
+      }
+
+      var wb = document.getElementById('lv-worlds');
+      if (wb){
+        wb.innerHTML = '';
+        (d.worlds || []).forEach(function(w){
+          var card = document.createElement('div');
+          card.style.cssText = 'border:1px solid var(--line);border-radius:12px;padding:12px 16px;'
+                + 'display:flex;flex-wrap:wrap;gap:6px 18px;align-items:center;';
+          card.innerHTML =
+                '<b style="color:var(--foam);font-size:14px;">' + esc(w.name) + '</b>'
+                + '<span style="color:var(--muted);font-size:12.5px;">' + esc(w.environment) + '</span>'
+                + '<span style="color:var(--cyan);font-size:12.5px;">👥 ' + w.players + '</span>'
+                + '<span style="color:var(--muted);font-size:12.5px;">实体 ' + w.entities + '</span>'
+                + '<span style="color:var(--muted);font-size:12.5px;">区块 ' + w.chunks_loaded + '</span>'
+                + '<span style="color:var(--muted);font-size:12.5px;">' + esc(w.difficulty) + '</span>';
+          wb.appendChild(card);
+        });
+      }
+    };
+
+    /* 手动 IP/端口 配置模块 */
+    var form = document.getElementById('live-config');
+    if (form){
+      var ipEl = document.getElementById('lc-ip');
+      var portEl = document.getElementById('lc-port');
+      var stEl = document.getElementById('lc-status');
+      var cur = ACTIVE || savedApi() || '';
+      var mm2 = cur.match(/^https?:\/\/([^:]+):(\d+)/);
+      if (mm2){ ipEl.value = mm2[1]; portEl.value = mm2[2]; }
+      else { ipEl.value = '127.0.0.1'; portEl.value = String(PERFMON_PORT); }
+
+      document.getElementById('lc-connect').addEventListener('click', function(){
+        var ip = ipEl.value.trim();
+        var port = parseInt(portEl.value, 10);
+        if (!ip || !port || port < 1 || port > 65535){
+          if (stEl) stEl.textContent = '请输入有效的 IP 和端口';
+          return;
+        }
+        setActive('http://' + ip + ':' + port);
+        tick();
+      });
+      document.getElementById('lc-scan').addEventListener('click', function(){
+        if (stEl) stEl.textContent = '正在自动检测…';
+        scannedOnce = false;
+        runDetect(true).then(function(url){
+          if (url){ setActive(url); tick(); }
+          else if (stEl) stEl.textContent = '未检测到可用的 PerfMonitor 接口';
+        });
+      });
+      if (stEl) stEl.textContent = ACTIVE ? ('已连接 ' + ACTIVE) : '自动检测中…';
+    }
+  }
+  initLiveStatus();
+
+  /* ---------- 主页服务器信息：实时 TPS / 在线 / 内存 / 运行时长 ---------- */
+  function initHomeLive(){
+    var box = document.getElementById('home-live');
+    if (!box) return;                       /* 仅主页存在该区块 */
+
+    LIVE_RENDER = function(d){
+      if (!d){
+        box.style.display = 'none';
+        return;
+      }
+      box.style.display = 'flex';
+
+      paintTps('hl-tps', d.tps);
+      setTxt('hl-online', d.online_players + ' / ' + d.max_players);
+      var m = d.memory;
+      if (m) setTxt('hl-mem', (m.used / 1048576).toFixed(0) + ' / ' + (m.max / 1048576).toFixed(0) + ' MB');
+      setTxt('hl-uptime', fmtUptime(liveUptime(d)));
+
+      /* 顺带更新下方静态卡片 */
+      if (d.minecraft_version) setTxt('hl-card-version', d.minecraft_version.toUpperCase());
+      setTxt('hl-card-uptime', fmtUptime(liveUptime(d)));
+      setTxt('hl-card-online', d.online_players + ' 人在线');
+    };
+  }
+  initHomeLive();
+
+  /* ---------- 启动实时引擎：固定地址则直接用，否则进入自动检测 + 1s 轮询 ---------- */
+  if (PINNED){
+    ACTIVE = PINNED;
+  }
+  if (LIVE_RENDER != null){
+    setInterval(tick, 1000);
+    tick();
+  }
 
   /* ============================================================
      卡片交互：面板光斑跟随 + 3D 微倾斜 + 按钮磁吸
