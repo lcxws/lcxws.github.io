@@ -16,7 +16,6 @@
   }
   a{color:inherit;text-decoration:none;}
 
-  #fx{position:fixed;inset:0;z-index:0;display:block;}
   .veil{position:fixed;inset:0;z-index:1;pointer-events:none;
     background:radial-gradient(circle at 50% 32%,rgba(0,0,0,0) 0%,rgba(0,0,0,.5) 100%);}
 
@@ -149,6 +148,27 @@
   html[data-theme="day"] .sub{color:#4a5278;}
   html[data-theme="day"] .sub b{color:#e23a52;}
   html[data-theme="day"] label span{color:#4a5278;}
+  .check{display:flex;align-items:center;justify-content:center;gap:10px;cursor:pointer;font-size:14px;color:#aab0d0;letter-spacing:.04em;}
+  .check span{display:inline;margin:0;padding:0;font-size:14px;letter-spacing:.04em;color:#aab0d0;}
+  .check input{width:17px;height:17px;accent-color:#151EC5;cursor:pointer;}
+  html[data-theme="day"] .check,html[data-theme="day"] .check span{color:#4a5278;}
+  .modeRow{display:flex;justify-content:center;gap:22px;flex-wrap:wrap;}
+  .modeBlock{border:1px dashed rgba(255,255,255,.18);border-radius:12px;padding:14px 14px 12px;}
+  .blockTitle{display:block;text-align:center;font-size:11.5px;color:#7a80b0;letter-spacing:.18em;margin-bottom:10px;}
+  html[data-theme="day"] .modeBlock{border-color:rgba(21,30,197,.22);}
+  html[data-theme="day"] .blockTitle{color:#6a7396;}
+
+  .star-card{border:1px solid rgba(255,255,255,.16);border-radius:16px;padding:22px;text-align:center;
+    background:linear-gradient(160deg,rgba(21,30,197,.2),rgba(0,0,0,.4));margin:0 auto 26px;max-width:420px;}
+  .sc-name{display:block;font-size:32px;font-weight:900;color:#fff;letter-spacing:.12em;text-shadow:0 0 18px rgba(21,30,197,.9);}
+  .sc-meta{display:block;margin-top:8px;font-size:13px;color:#9aa0c8;letter-spacing:.18em;}
+  .sc-row{margin-top:16px;font-size:14px;color:#ffd0d8;letter-spacing:.08em;}
+  .sc-row b{color:#fff;}
+  html[data-theme="day"] .star-card{border-color:rgba(21,30,197,.2);background:linear-gradient(160deg,rgba(21,30,197,.14),rgba(255,255,255,.6));}
+  html[data-theme="day"] .sc-name{color:#1c2250;text-shadow:0 0 14px rgba(21,30,197,.35);}
+  html[data-theme="day"] .sc-meta{color:#4a5278;}
+  html[data-theme="day"] .sc-row{color:#c2304a;}
+  html[data-theme="day"] .sc-row b{color:#151EC5;}
   html[data-theme="day"] input{background:rgba(255,255,255,.85);border-color:rgba(21,30,197,.25);color:#1c2250;}
   html[data-theme="day"] input:focus{border-color:#151EC5;box-shadow:0 0 0 3px rgba(21,30,197,.18);}
   html[data-theme="day"] .calc h2{color:#1c2250;}
@@ -192,7 +212,6 @@
   .pl-far{--po:.48;font-size:16px;filter:blur(1px);animation-duration:48s;}
   .pl-mid{--po:.70;font-size:23px;filter:blur(.5px);animation-duration:31s;}
   .pl-near{--po:.92;font-size:31px;animation-duration:20s;}
-  html[data-theme="night"] #fx{display:none;}
   @keyframes fall{
     0%{transform:translateY(-12vh);opacity:0;}
     7%{opacity:var(--po,1);}
@@ -209,7 +228,6 @@
   (function(){var r=document.documentElement;function a(){var h=new Date().getHours();return (h>=22||h<4)?'night':'day';}var s=null;try{s=localStorage.getItem('lcxwsTheme');}catch(e){}r.setAttribute('data-theme',s||a());})();
 </script>
 
-<canvas id="fx"></canvas>
 <div class="poem-rain" id="poemRain"></div>
 <div class="veil"></div>
 <script src="poems.js"></script>
@@ -260,6 +278,17 @@
       <label><span>姓 名</span><input id="name" required placeholder="请输入你的名字" maxlength="12"></label>
       <label><span>生 日</span><input id="birth" type="date" required max="2026-12-31" min="1900-01-01"></label>
       <label><span>出生时间（可选）</span><input id="hour" type="time" placeholder="如 14:30"></label>
+      <div class="modeBlock">
+        <span class="blockTitle">测算板块 · 二选一</span>
+        <div class="modeRow">
+          <label class="check"><input type="checkbox" id="modeBazi"><span>生辰八字</span></label>
+          <label class="check"><input type="checkbox" id="modeStar"><span>星座运势</span></label>
+        </div>
+      </div>
+      <div class="modeBlock">
+        <span class="blockTitle">每日运势板块 · 独立勾选</span>
+        <label class="check"><input type="checkbox" id="today"><span>每日运势（以今天日期加权）</span></label>
+      </div>
       <button type="submit">开始瞎编 ▸</button>
     </form>
   </section>
@@ -277,6 +306,7 @@
     <p class="rpLevel" id="rpLevel"></p>
     <div class="bazi" id="bazi"></div>
     <div class="wx" id="wxRow"></div>
+    <div class="star-card hidden" id="starInfo"></div>
     <div class="readout" id="readout"></div>
     <div class="actions">
       <button id="again">再测一次</button>
@@ -643,7 +673,8 @@ var blessings={
   ]
 };
 
-var nameEl=document.getElementById('name'),birthEl=document.getElementById('birth'),hourEl=document.getElementById('hour');
+var nameEl=document.getElementById('name'),birthEl=document.getElementById('birth'),hourEl=document.getElementById('hour'),todayEl=document.getElementById('today');
+var modeBazi=document.getElementById('modeBazi'),modeStar=document.getElementById('modeStar');
 var warnModal=document.getElementById('warnModal');
 document.getElementById('warnOk').addEventListener('click',function(){warnModal.style.display='none';});
 var form=document.getElementById('form');
@@ -652,10 +683,22 @@ var calcStep=document.getElementById('calcStep'),calcBar=document.getElementById
 
 function sleep(ms){return new Promise(function(r){setTimeout(r,ms);});}
 
+function todayStr(){var d=new Date();return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2);}
+
+modeBazi.addEventListener('change',function(){if(modeBazi.checked)modeStar.checked=false;});
+modeStar.addEventListener('change',function(){if(modeStar.checked)modeBazi.checked=false;});
+
 form.addEventListener('submit',function(e){
   e.preventDefault();
   if(!nameEl.value.trim()||!birthEl.value)return;
-  runCalc();
+  if(!modeBazi.checked&&!modeStar.checked){
+    document.getElementById('warnTitle').textContent='还没选模式';
+    document.getElementById('warnText').innerHTML='想要多少你自己填吧<br>请先勾选「生辰八字」或「星座运势」';
+    warnModal.style.display='flex';
+    return;
+  }
+  if(modeStar.checked)runStar();
+  else runBazi();
 });
 
 document.getElementById('again').addEventListener('click',function(){
@@ -663,7 +706,11 @@ document.getElementById('again').addEventListener('click',function(){
   inputPanel.classList.remove('hidden');
 });
 
-function renderResult(pillars,valueHex,hex,name,birth){
+function renderResult(pillars,valueHex,hex,name,birth,weightInfo){
+  document.getElementById('bazi').classList.remove('hidden');
+  document.getElementById('wxRow').classList.remove('hidden');
+  document.getElementById('starInfo').classList.add('hidden');
+  document.querySelector('.ribbon').textContent='瞎 编 完 成';
   var num=parseInt(valueHex,10);
   var lv=rpLevel(num);
   document.getElementById('rpValue').textContent=Number(valueHex).toLocaleString();
@@ -713,6 +760,7 @@ function renderResult(pillars,valueHex,hex,name,birth){
 
   var seed=hash(name+'|'+birth+'|'+num);
   var para='<p>命主八字为 <b>'+allChars.join(' · ')+'</b>，日主<b>'+STEM_WX_NAME[dayStemEl]+'</b>。'+dayTrait[Math.floor(dayStemEl/2)][1][seed%dayTrait[Math.floor(dayStemEl/2)][1].length]+'</p>';
+  if(weightInfo)para+='<p class="bless">今日人品 · '+weightInfo.date+' 加权系数 ×'+(weightInfo.weight/100).toFixed(2)+'：基础 '+weightInfo.base.toLocaleString()+' → 今日 '+weightInfo.final.toLocaleString()+'（每天浮动，过期作废）</p>';
   if(missing.length===1)para+='<p>'+missPool[missing[0]][seed%missPool[missing[0]].length]+'</p>';
   else para+='<p>'+allPool[seed%allPool.length]+'</p>';
   var strongEl=order[0],strongN=0;
@@ -742,7 +790,108 @@ function renderResult(pillars,valueHex,hex,name,birth){
   resultPanel.classList.remove('hidden');
 }
 
-async function runCalc(){
+var CONS=[
+  {name:'白羊座',el:'火',planet:'火星',trait:'行动力爆表，想到就做，就是三分钟热度。'},
+  {name:'金牛座',el:'土',planet:'金星',trait:'稳如泰山，爱钱爱美食，拖延但靠谱。'},
+  {name:'双子座',el:'风',planet:'水星',trait:'话题制造机，双重人格，消息灵通。'},
+  {name:'巨蟹座',el:'水',planet:'月亮',trait:'念旧心软，护短第一名，安全感是命门。'},
+  {name:'狮子座',el:'火',planet:'太阳',trait:'自带主角光环，要面子，讲义气。'},
+  {name:'处女座',el:'土',planet:'水星',trait:'细节控，嘴上嫌弃，心里门儿清。'},
+  {name:'天秤座',el:'风',planet:'金星',trait:'选择困难晚期，见人说人话，见鬼说鬼话。'},
+  {name:'天蝎座',el:'水',planet:'冥王星',trait:'记仇专业户，爱憎分明，惹谁都别惹它。'},
+  {name:'射手座',el:'火',planet:'木星',trait:'爱自由，爱冒险，永远在路上。'},
+  {name:'摩羯座',el:'土',planet:'土星',trait:'工作狂本狂，闷声干大事，自带苦行僧气质。'},
+  {name:'水瓶座',el:'风',planet:'天王星',trait:'脑回路清奇，外星人本星，越怪越爱。'},
+  {name:'双鱼座',el:'水',planet:'海王星',trait:'爱做梦爱掉眼泪，浪漫过敏体质。'}
+];
+var starColor={火:['红色','橙色','玫红'],土:['金色','棕色','米黄'],风:['蓝色','青色','银灰'],水:['紫色','黑色','海蓝']};
+var starLevels=[[0,'运势低迷','宜低调行事，明日再战。'],[45,'运势平平','不温不火，适合稳扎稳打。'],[65,'运势尚可','小有起色，宜见好就收。'],[85,'运势大好','诸事顺遂，宜主动出击。'],[Infinity,'运势爆棚','天时地利人和，赶紧行动！']];
+
+function getConstellation(m,d){
+  if((m===3&&d>=21)||(m===4&&d<=19))return CONS[0];
+  if((m===4&&d>=20)||(m===5&&d<=20))return CONS[1];
+  if((m===5&&d>=21)||(m===6&&d<=21))return CONS[2];
+  if((m===6&&d>=22)||(m===7&&d<=22))return CONS[3];
+  if((m===7&&d>=23)||(m===8&&d<=22))return CONS[4];
+  if((m===8&&d>=23)||(m===9&&d<=22))return CONS[5];
+  if((m===9&&d>=23)||(m===10&&d<=23))return CONS[6];
+  if((m===10&&d>=24)||(m===11&&d<=22))return CONS[7];
+  if((m===11&&d>=23)||(m===12&&d<=21))return CONS[8];
+  if((m===12&&d>=22)||(m===1&&d<=19))return CONS[9];
+  if((m===1&&d>=20)||(m===2&&d<=18))return CONS[10];
+  return CONS[11];
+}
+function starLevel(s){for(var i=0;i<starLevels.length;i++)if(s<starLevels[i][0])return starLevels[i];return starLevels[starLevels.length-1];}
+
+function renderStar(con,score,subs,luckNum,luckColor,seed,today,isDaily){
+  document.getElementById('bazi').classList.add('hidden');
+  document.getElementById('wxRow').classList.add('hidden');
+  document.getElementById('rpValue').textContent=score;
+  document.getElementById('rpLevel').textContent=starLevel(score)[1];
+  var si=document.getElementById('starInfo');
+  si.classList.remove('hidden');
+  si.innerHTML='<span class="sc-name">'+con.name+'</span>'+
+    '<span class="sc-meta">'+con.el+'象星座 · 守护星 '+con.planet+'</span>'+
+    '<div class="sc-row">幸运数字 <b>'+luckNum+'</b> · 幸运颜色 <b>'+luckColor+'</b></div>';
+  var para='<p>'+con.name+' · '+con.el+'象 · 守护星 '+con.planet+'，'+con.trait+'</p>';
+  para+='<p>'+(isDaily?'今日综合运势':'星座综合运势')+' <b>'+score+'</b>'+(isDaily?('（'+today+' 有效，过期作废）'):'')+'：事业 '+subs[0]+' · 财运 '+subs[1]+' · 爱情 '+subs[2]+' · 健康 '+subs[3]+'</p>';
+  para+='<p>'+careerPool[seed%careerPool.length]+'</p>';
+  para+='<p>'+wealthPool[(seed+1)%wealthPool.length]+'</p>';
+  para+='<p>'+lovePool[(seed+2)%lovePool.length]+'</p>';
+  para+='<p>'+healthPool[(seed+3)%healthPool.length]+'</p>';
+  para+='<p>'+luckPool[(seed+4)%luckPool.length]+'</p>';
+  para+='<p>'+dailyTip[(seed+5)%dailyTip.length]+'</p>';
+  para+='<p class="verdict">'+verdictPool[seed%verdictPool.length]+'</p>';
+  document.getElementById('readout').innerHTML=para;
+  resultPanel.classList.remove('hidden');
+}
+
+async function runStar(){
+  var name=nameEl.value.trim(),birth=birthEl.value;
+  var parts=birth.split('-');
+  var m=parseInt(parts[1],10),d=parseInt(parts[2],10);
+  var con=getConstellation(m,d);
+  var today=todayStr();
+  var isDaily=todayEl.checked;
+  var baseSeed=hash(con.name+'|'+name);
+  var baseScore=40+(baseSeed%61);
+  var score=baseScore,seed=baseSeed;
+  if(isDaily){
+    seed=hash(con.name+'|'+name+'|'+today);
+    var off=(seed%21)-10;
+    score=Math.max(40,Math.min(100,baseScore+off));
+  }
+  var subs=[40+((seed+17)%61),40+((seed+34)%61),40+((seed+51)%61),40+((seed+68)%61)];
+  var luckNum=(hash(con.name+name)%9)+1;
+  var luckColor=starColor[con.el][hash(con.name+name)%3];
+
+  inputPanel.classList.add('hidden');
+  resultPanel.classList.add('hidden');
+  calcPanel.classList.remove('hidden');
+  calcBar.style.width='0%';
+
+  var steps=[
+    ['正在读取生辰…','生辰 '+birth+' · 名讳 '+name],
+    ['正在计算星座…','出生日期 → '+con.name+'（'+con.el+'象 · 守护星 '+con.planet+'）'],
+    [isDaily?'正在推演今日运势（日期加权）…':'正在推演星座基准运势…', isDaily
+      ? '今日 '+today+' · 基础 '+baseScore+' ±'+10+' → 综合 '+score
+      : '星座基准运势 '+score+'（每日运势未勾选，结果固定）'],
+    ['正在生成分项运势与幸运指数…','事业 '+subs[0]+' · 财运 '+subs[1]+' · 爱情 '+subs[2]+' · 健康 '+subs[3]+' · 幸运数字 '+luckNum],
+    ['正在整理运势报告…','逐条推敲，句句皆属瞎编'],
+    ['瞎编完成！','以上内容与事实无关，如有雷同，纯属巧合。']
+  ];
+  for(var i=0;i<steps.length;i++){
+    calcStep.textContent=steps[i][0];
+    calcLog.textContent=steps[i][1];
+    calcBar.style.width=((i+1)/steps.length*100)+'%';
+    await sleep(i===steps.length-1?700:780);
+  }
+
+  calcPanel.classList.add('hidden');
+  renderStar(con,score,subs,luckNum,luckColor,seed,today,isDaily);
+}
+
+async function runBazi(){
   var name=nameEl.value.trim();
   var birth=birthEl.value;
   var parts=birth.split('-');
@@ -757,20 +906,33 @@ async function runCalc(){
   var plain=utf8(name);
   var ct=aesEncrypt(plain,key);
   var hex=toHex(ct);
-  var valueHex=pickValue(hex);
+  var baseValue=pickValue(hex);
+  var baseNum=parseInt(baseValue,10);
+
+  var isToday=todayEl.checked;
+  var wDate='';
+  var weightInfo=null;
+  if(isToday){
+    wDate=todayStr();
+    var w=80+(hash('今日加权|'+wDate)%40);
+    var finalNum=Math.min(9999999,Math.round(baseNum*w/100));
+    weightInfo={base:baseNum,weight:w,final:finalNum,date:wDate};
+  }
+  var valueHex=weightInfo?String(weightInfo.final):baseValue;
 
   inputPanel.classList.add('hidden');
   resultPanel.classList.add('hidden');
   calcPanel.classList.remove('hidden');
   calcBar.style.width='0%';
-  setDensity(200);
 
   var steps=[
-    ['正在读取生辰八字…','生辰 '+birth+' · 名讳 '+name],
+    ['正在读取生辰八字…','生辰 '+birth+' · 名讳 '+name+(isToday?' · 模式：今日人品':'')],
     ['正在推演四柱（年、月、日、时）…',
      '年柱 '+STEMS[pillars.year.s]+BRANCHES[pillars.year.b]+' · 月柱 '+STEMS[pillars.month.s]+BRANCHES[pillars.month.b]+' · 日柱 '+STEMS[pillars.day.s]+BRANCHES[pillars.day.b]+' · 时柱 '+STEMS[pillars.hour.s]+BRANCHES[pillars.hour.b]+hourNote],
     ['正在推演五行分布与日主…','定日主、查五行、寻所缺、观所旺'],
-    ['正在量化人品值…','综合八字、五行与名讳，演算人品数值（结果已封存，原理不可考）'],
+    [isToday?'正在以今日日期加权计算人品…':'正在量化人品值…', isToday
+      ? '今日 '+wDate+' · 加权系数 ×'+(weightInfo.weight/100).toFixed(2)+' · 基础人品 '+weightInfo.base.toLocaleString()+' → 今日人品 '+weightInfo.final.toLocaleString()
+      : '综合八字、五行与名讳，演算人品数值（结果已封存，原理不可考）'],
     ['正在生成命理鉴定与开运建议…','逐条推敲，句句皆属瞎编'],
     ['瞎编完成！','以上内容与事实无关，如有雷同，纯属巧合。']
   ];
@@ -783,73 +945,9 @@ async function runCalc(){
   }
 
   calcPanel.classList.add('hidden');
-  renderResult(pillars,valueHex,hex,name,birth);
-  setDensity(70);
+  renderResult(pillars,valueHex,hex,name,birth,weightInfo);
 }
 
-var canvas=document.getElementById('fx');
-var ctx=canvas.getContext('2d');
-var W,H,partsArr=[],density=70,targetDensity=70,calcMode=false;
-
-function resize(){W=canvas.width=innerWidth;H=canvas.height=innerHeight;}
-addEventListener('resize',resize);resize();
-
-function makeParticle(burst){
-  var hue=Math.random()*360;
-  var isStreak=Math.random()<0.25;
-  return {
-    x:Math.random()*W,y:Math.random()*H,
-    vx:(Math.random()-0.5)*(isStreak?2.4:0.8),
-    vy:(Math.random()-0.5)*(isStreak?2.4:0.8),
-    hue:hue,size:isStreak?Math.random()*2+1:Math.random()*3.2+1,
-    streak:isStreak,life:Math.random()*60+20,maxLife:80,
-    phase:Math.random()*Math.PI*2,
-    dense:burst?Math.random()<0.85:Math.random()<0.3
-  };
-}
-function setDensity(n){targetDensity=n;calcMode=n>100;}
-function burst(){
-  for(var i=0;i<26;i++)partsArr.push(makeParticle(true));
-}
-
-function draw(t){
-  if(document.documentElement.getAttribute('data-theme')!=='day'){requestAnimationFrame(draw);return;}
-  density+=(targetDensity-density)*0.04;
-  while(partsArr.length<Math.round(density))partsArr.push(makeParticle(false));
-  if(partsArr.length>Math.round(density)+10)partsArr.splice(Math.round(density)+10);
-
-  ctx.globalCompositeOperation='source-over';
-  var light=document.documentElement.getAttribute('data-theme')==='day';
-  ctx.fillStyle=light?'rgba(255,255,255,0.45)':'rgba(0,0,0,0.22)';
-  ctx.fillRect(0,0,W,H);
-  ctx.globalCompositeOperation='lighter';
-  ctx.shadowBlur=light?10:18;
-  var len=partsArr.length;
-  for(var i=0;i<len;i++){
-    var p=partsArr[i];
-    p.phase+=0.02;
-    p.x+=p.vx+Math.sin(p.phase)*0.35;
-    p.y+=p.vy+Math.cos(p.phase*0.7)*0.35;
-    if(p.x<-20)p.x=W+20;if(p.x>W+20)p.x=-20;
-    if(p.y<-20)p.y=H+20;if(p.y>H+20)p.y=-20;
-    var lite=(p.dense?1:0.45)*(Math.sin(t/900+p.phase)*0.4+0.6);
-    ctx.shadowColor=light?'hsla('+p.hue+',90%,40%,1)':'hsla('+p.hue+',100%,62%,1)';
-    ctx.fillStyle=light?'hsla('+p.hue+',85%,'+(42+Math.random()*12)+'%,'+(0.55+0.4*lite)+')':'hsla('+p.hue+',100%,'+(58+Math.random()*10)+'%,'+(0.35+0.55*lite)+')';
-    var s=p.size*(p.dense?1.35:1);
-    if(p.streak){
-      ctx.fillRect(p.x,p.y,s*5,s);
-    }else{
-      ctx.beginPath();
-      ctx.arc(p.x,p.y,s,0,Math.PI*2);
-      ctx.fill();
-    }
-  }
-  ctx.globalCompositeOperation='source-over';
-  ctx.shadowBlur=0;
-  requestAnimationFrame(draw);
-}
-requestAnimationFrame(draw);
-setInterval(function(){if(calcMode)burst();},140);
 </script>
 <script>
   (function(){
