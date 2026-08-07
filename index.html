@@ -66,8 +66,9 @@
     transition:transform .25s,border-color .25s,box-shadow .25s;}
   .card:hover{transform:translateY(-6px);border-color:rgba(255,255,255,.4);
     box-shadow:0 20px 44px -18px rgba(21,30,197,.75),0 0 28px rgba(214,0,33,.35);}
-  .card .corner{position:absolute;top:14px;left:14px;width:46px;height:46px;border-radius:10px;object-fit:cover;
-    border:2px solid rgba(255,255,255,.8);box-shadow:0 0 16px rgba(21,30,197,.85);}
+  .card .corner{position:absolute;top:14px;left:14px;width:46px;height:46px;border-radius:10px;
+    display:flex;align-items:center;justify-content:center;font-size:30px;line-height:1;
+    background:rgba(0,0,0,.45);border:2px solid rgba(255,255,255,.8);box-shadow:0 0 16px rgba(21,30,197,.85);}
   .card .go{position:absolute;top:16px;right:16px;font-size:12px;font-weight:900;color:#fff;letter-spacing:.1em;
     border:1px solid rgba(255,255,255,.35);padding:5px 9px;border-radius:6px;transition:.2s;}
   .card:hover .go{background:var(--white);color:#000;}
@@ -97,7 +98,7 @@
 </div>
 
 <div class="wrap">
-  <img class="avatar" src="avatar.png" alt="LCXWS 头像">
+  <img class="avatar" src="avatar.jpg" alt="LCXWS 头像">
   <h1>LCXWS</h1>
   <p class="tagline">Coding · Minecraft · 我的小世界</p>
   <div class="divider"></div>
@@ -112,7 +113,7 @@
     </a>
     <a class="card" href="renpin/index.html">
       <span class="go">OPEN ▸</span>
-      <img class="corner" src="avatar.png" alt="人品算法生成器">
+      <span class="corner">🍀</span>
       <div class="shine"></div>
       <h3>人品算法生成器</h3>
       <p>输入生日与姓名，自动生成你的四柱八字与人品值，附送五行开运吉祥话。100% 胡编乱造，仅供娱乐。</p>
