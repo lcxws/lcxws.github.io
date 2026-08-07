@@ -1,0 +1,749 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>人品算法生成器 · LCXWS</title>
+<meta name="description" content="输入生日与姓名，自动生成你的四柱八字与人品值。仅供娱乐。">
+<style>
+  :root{--blue:#151EC5;--red:#D60021;--white:#fff;--panel:rgba(10,12,26,.72);}
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html,body{height:100%;}
+  body{
+    background:#000;color:#e8e8f0;overflow-x:hidden;
+    font-family:'Segoe UI','Noto Sans SC','Microsoft YaHei',system-ui,sans-serif;
+    min-height:100vh;
+  }
+  a{color:inherit;text-decoration:none;}
+
+  #fx{position:fixed;inset:0;z-index:0;display:block;}
+  .veil{position:fixed;inset:0;z-index:1;pointer-events:none;
+    background:radial-gradient(circle at 50% 32%,rgba(0,0,0,0) 0%,rgba(0,0,0,.78) 100%);}
+
+  .top{position:relative;z-index:2;max-width:860px;margin:0 auto;padding:26px 20px 0;display:flex;align-items:center;justify-content:space-between;gap:16px;}
+  .home{font-size:12.5px;font-weight:800;letter-spacing:.12em;color:#aab0d0;
+    border:1px solid rgba(255,255,255,.28);padding:7px 12px;border-radius:8px;transition:.2s;}
+  .home:hover{color:#000;background:var(--white);border-color:var(--white);}
+  .top .site{font-size:12.5px;letter-spacing:.24em;color:#565c86;}
+
+  main{position:relative;z-index:2;max-width:860px;margin:0 auto;padding:30px 20px 60px;}
+
+  .panel{
+    background:var(--panel);border:1px solid rgba(255,255,255,.13);border-radius:22px;
+    padding:38px 34px;backdrop-filter:blur(10px);
+    box-shadow:0 0 60px -18px rgba(21,30,197,.7),0 0 40px -20px rgba(214,0,33,.4);
+    animation:pop .45s ease both;
+  }
+  @keyframes pop{from{opacity:0;transform:translateY(14px);}to{opacity:1;transform:none;}}
+  .hidden{display:none!important;}
+
+  h1{font-size:clamp(30px,6vw,46px);font-weight:900;text-align:center;letter-spacing:.05em;
+    background:linear-gradient(90deg,#fff,#aab0ff,#fff 60%,#ffb9c4);
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+    filter:drop-shadow(0 0 14px rgba(21,30,197,.9)) drop-shadow(0 0 26px rgba(214,0,33,.5));}
+  .sub{text-align:center;color:#9aa0c8;font-size:13.5px;line-height:1.8;margin:14px auto 30px;max-width:560px;}
+  .sub b{color:#ffd0d8;font-weight:800;}
+
+  form{display:grid;gap:18px;max-width:430px;margin:0 auto;}
+  label{display:block;}
+  label span{display:block;font-size:12.5px;color:#9aa0c8;letter-spacing:.2em;margin-bottom:8px;}
+  input{
+    width:100%;padding:13px 14px;border-radius:11px;border:1px solid rgba(255,255,255,.2);
+    background:rgba(0,0,0,.45);color:#fff;font-size:16px;outline:none;transition:.2s;font-family:inherit;
+  }
+  input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(21,30,197,.45);}
+  #birth::-webkit-calendar-picker-indicator{filter:invert(.8);}
+
+  button,#again{
+    cursor:pointer;border:none;border-radius:12px;padding:14px 20px;font-size:16px;font-weight:900;
+    letter-spacing:.16em;color:#fff;background:linear-gradient(120deg,var(--blue),#3a44ff 55%,var(--red));
+    box-shadow:0 10px 30px -10px rgba(21,30,197,.9),0 0 24px -6px rgba(214,0,33,.6);
+    transition:.2s;font-family:inherit;
+  }
+  button:hover,#again:hover{transform:translateY(-2px);box-shadow:0 14px 36px -10px rgba(21,30,197,.95),0 0 34px -4px rgba(214,0,33,.8);}
+  .hint{text-align:center;color:#565c86;font-size:11.5px;line-height:1.7;margin-top:20px;max-width:460px;margin-left:auto;margin-right:auto;}
+
+  .warn{position:fixed;inset:0;z-index:50;display:flex;align-items:center;justify-content:center;
+    background:rgba(0,0,0,.78);backdrop-filter:blur(6px);animation:fadeIn .3s ease;}
+  @keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
+  .warnBox{max-width:400px;width:calc(100% - 44px);text-align:center;padding:36px 28px 30px;border-radius:20px;
+    background:linear-gradient(160deg,rgba(21,30,197,.38),rgba(0,0,0,.84));
+    border:1px solid rgba(255,255,255,.22);box-shadow:0 0 60px -10px rgba(21,30,197,.85),0 0 44px -12px rgba(214,0,33,.55);
+    animation:pop .4s ease both;}
+  .warnTitle{font-size:22px;font-weight:900;letter-spacing:.14em;color:#fff;margin-bottom:18px;
+    text-shadow:0 0 16px rgba(214,0,33,.9);}
+  .warnText{font-size:15px;line-height:2;color:#d6d9f2;}
+  .warnText b{color:#ffd0d8;font-size:19px;letter-spacing:.12em;}
+  .warn button{margin-top:28px;width:100%;}
+
+  .readout .bless{color:#ffd9b0;font-size:14px;font-weight:700;
+    background:linear-gradient(90deg,rgba(214,0,33,.16),rgba(21,30,197,.2));
+    border:1px dashed rgba(255,255,255,.24);border-radius:12px;padding:13px 16px;line-height:1.8;}
+
+  .calc{text-align:center;padding:54px 34px;}
+  .loader{width:64px;height:64px;margin:0 auto 28px;border-radius:50%;
+    border:4px solid rgba(255,255,255,.12);border-top-color:#3a44ff;border-right-color:#ff3a55;
+    animation:spin 1s linear infinite;box-shadow:0 0 30px rgba(21,30,197,.6);}
+  @keyframes spin{to{transform:rotate(360deg);}}
+  .calc h2{font-size:22px;font-weight:900;letter-spacing:.08em;min-height:1.4em;color:#fff;}
+  .progress{height:8px;border-radius:6px;background:rgba(255,255,255,.1);overflow:hidden;max-width:480px;margin:22px auto 0;}
+  .progress .bar{height:100%;width:0;border-radius:6px;transition:width .4s;
+    background:linear-gradient(90deg,var(--blue),#fff,var(--red));box-shadow:0 0 16px rgba(255,255,255,.5);}
+  .calcLog{color:#7a80b0;font-size:12px;letter-spacing:.08em;margin-top:18px;min-height:1.5em;font-family:Consolas,monospace;}
+
+  .ribbon{display:inline-block;font-size:11.5px;font-weight:900;letter-spacing:.28em;color:#000;
+    background:linear-gradient(90deg,#fff,#ffd0d8);padding:6px 14px;border-radius:999px;margin-bottom:14px;}
+  #rpValue{font-size:clamp(52px,12vw,92px);font-weight:900;text-align:center;letter-spacing:.04em;color:#fff;
+    text-shadow:0 0 22px rgba(21,30,197,.95),0 0 44px rgba(214,0,33,.6);}
+  .rpLevel{text-align:center;font-size:16px;font-weight:800;letter-spacing:.22em;color:#ffd0d8;margin:6px 0 26px;}
+
+  .bazi{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin:0 auto 26px;}
+  .pillar{border:1px solid rgba(255,255,255,.16);border-radius:14px;padding:16px 8px 14px;text-align:center;
+    background:linear-gradient(160deg,rgba(21,30,197,.22),rgba(0,0,0,.4));}
+  .pillar .pTitle{display:block;font-size:12px;letter-spacing:.24em;color:#9aa0c8;margin-bottom:12px;}
+  .pillar .pStem{display:block;font-size:34px;font-weight:900;color:#fff;text-shadow:0 0 18px rgba(21,30,197,.9);}
+  .pillar .pBranch{display:block;font-size:34px;font-weight:900;color:#ffb9c4;margin-top:4px;text-shadow:0 0 16px rgba(214,0,33,.7);}
+  .pillar .pWx{display:block;margin-top:10px;font-size:11px;letter-spacing:.18em;color:#7a80b0;}
+
+  .wx{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-bottom:24px;}
+  .chip{border:1px solid rgba(255,255,255,.16);border-radius:999px;padding:7px 14px;font-size:13px;color:#d6d9f2;background:rgba(0,0,0,.35);}
+  .chip b{color:#fff;font-weight:900;}
+  .chip.miss{border-color:rgba(214,0,33,.6);color:#ffb9c4;box-shadow:0 0 18px rgba(214,0,33,.35);}
+
+  .readout{border-top:1px dashed rgba(255,255,255,.16);border-bottom:1px dashed rgba(255,255,255,.16);
+    padding:22px 6px;margin-bottom:26px;color:#d6d9f2;line-height:1.95;font-size:14.5px;}
+  .readout p{margin-bottom:14px;}
+  .readout p:last-child{margin-bottom:0;}
+  .readout b{color:#fff;}
+  .readout .verdict{color:#ffd0d8;font-weight:800;}
+
+  .actions{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;}
+  #again{padding:12px 22px;font-size:14px;}
+  .back{font-size:13.5px;font-weight:800;letter-spacing:.12em;color:#aab0d0;padding:12px 22px;border-radius:12px;
+    border:1px solid rgba(255,255,255,.28);transition:.2s;}
+  .back:hover{color:#000;background:var(--white);border-color:var(--white);}
+
+  footer{position:relative;z-index:2;text-align:center;color:#565c86;font-size:12px;padding:0 0 40px;letter-spacing:.18em;}
+
+  @media (prefers-reduced-motion:reduce){.loader{animation-duration:2s;}}
+  @media (max-width:560px){.panel{padding:28px 18px;}.bazi{gap:8px;}.pillar .pStem,.pillar .pBranch{font-size:26px;}}
+</style>
+</head>
+<body>
+
+<canvas id="fx"></canvas>
+<div class="veil"></div>
+
+<div class="warn" id="warnModal">
+  <div class="warnBox">
+    <div class="warnTitle">温馨提示</div>
+    <p class="warnText">本生成器仅供娱乐<br><b>信则有，不信则无</b><br>八字与人品值皆为随机拼凑，请勿当真。</p>
+    <button id="warnOk">知道了</button>
+  </div>
+</div>
+
+<div class="top">
+  <a class="home" href="../index.html">◂ 返回主页</a>
+  <span class="site">LCXWS · 娱乐工具</span>
+</div>
+
+<main>
+  <section class="panel" id="inputPanel">
+    <h1>人品算法生成器</h1>
+    <p class="sub">输入<b>生日</b>、<b>出生时间</b>与<b>姓名</b>，即可推演你的<b>四柱八字</b>与<b>人品值</b>。<br>时柱按你填写的出生时间推演，不填则随机。<br>本测算 100% 瞎编，仅供娱乐，后果自负。</p>
+
+    <form id="form" autocomplete="off">
+      <label><span>姓 名</span><input id="name" required placeholder="请输入你的名字" maxlength="12"></label>
+      <label><span>生 日</span><input id="birth" type="date" required max="2026-12-31" min="1900-01-01"></label>
+      <label><span>出生时间（可选）</span><input id="hour" type="time" placeholder="如 14:30"></label>
+      <button type="submit">开始瞎编 ▸</button>
+    </form>
+  </section>
+
+  <section class="panel calc hidden" id="calcPanel">
+    <div class="loader"></div>
+    <h2 id="calcStep">正在读取生辰八字…</h2>
+    <div class="progress"><div class="bar" id="calcBar"></div></div>
+    <p class="calcLog" id="calcLog"></p>
+  </section>
+
+  <section class="panel result hidden" id="resultPanel">
+    <p class="ribbon">瞎 编 完 成</p>
+    <div id="rpValue">--</div>
+    <p class="rpLevel" id="rpLevel"></p>
+    <div class="bazi" id="bazi"></div>
+    <div class="wx" id="wxRow"></div>
+    <div class="readout" id="readout"></div>
+    <div class="actions">
+      <button id="again">再测一次</button>
+      <a class="back" href="../index.html">返回主页</a>
+    </div>
+  </section>
+</main>
+
+<footer>LCXWS · 人品算法生成器 · 仅供娱乐</footer>
+
+<script>
+var STEMS=['甲','乙','丙','丁','戊','己','庚','辛','壬','癸'];
+var BRANCHES=['子','丑','寅','卯','辰','巳','午','未','申','酉','戌','亥'];
+var WX=['木','木','火','火','土','土','金','金','水','水'];
+var BRANCH_WX=['水','土','木','木','土','火','火','土','金','金','土','水'];
+var STEM_WX_NAME=['甲木','乙木','丙火','丁火','戊土','己土','庚金','辛金','壬水','癸水'];
+
+function isLeap(y){return (y%4===0&&y%100!==0)||y%400===0;}
+function daysInMonth(y,m){return [31,isLeap(y)?29:28,31,30,31,30,31,31,30,31,30,31][m-1];}
+function daysFromEpoch(y,m,d){
+  var days=0;
+  for(var i=1900;i<y;i++)days+=isLeap(i)?366:365;
+  for(var i=1;i<m;i++)days+=daysInMonth(y,i);
+  return days+d-1;
+}
+function hash(str){
+  var h=2166136261;
+  for(var i=0;i<str.length;i++){h^=str.charCodeAt(i);h=Math.imul(h,16777619);}
+  return h>>>0;
+}
+
+function computePillars(y,m,d,hour,name){
+  var ys=((y-4)%10+10)%10,yb=((y-4)%12+12)%12;
+  var ms=( [2,4,6,8,0][ys%5]+m-2+10)%10, mb=m%12;
+  var didx=(10+daysFromEpoch(y,m,d))%60;
+  var ds=didx%10, db=didx%12;
+  var hb=(hour==null)?hash(name)%12:Math.floor((hour+1)/2)%12;
+  var hs=([0,2,4,6,8][ds%5]+hb)%10;
+  return {
+    year:{s:ys,b:yb},month:{s:ms,b:mb},day:{s:ds,b:db},hour:{s:hs,b:hb}
+  };
+}
+
+function utf8(str){
+  var out=[];
+  for(var ch of str){
+    var cp=ch.codePointAt(0);
+    if(cp<0x80)out.push(cp);
+    else if(cp<0x800)out.push(0xc0|(cp>>6),0x80|(cp&0x3f));
+    else if(cp<0x10000)out.push(0xe0|(cp>>12),0x80|((cp>>6)&0x3f),0x80|(cp&0x3f));
+    else out.push(0xf0|(cp>>18),0x80|((cp>>12)&0x3f),0x80|((cp>>6)&0x3f),0x80|(cp&0x3f));
+  }
+  return out;
+}
+function toHex(bytes){var s='';for(var i=0;i<bytes.length;i++)s+=(bytes[i]<16?'0':'')+bytes[i].toString(16).toUpperCase();return s;}
+
+var SHA256K=[
+0x428a2f98,0x71374491,0xb5c0fbcf,0xe9b5dba5,0x3956c25b,0x59f111f1,0x923f82a4,0xab1c5ed5,
+0xd807aa98,0x12835b01,0x243185be,0x550c7dc3,0x72be5d74,0x80deb1fe,0x9bdc06a7,0xc19bf174,
+0xe49b69c1,0xefbe4786,0x0fc19dc6,0x240ca1cc,0x2de92c6f,0x4a7484aa,0x5cb0a9dc,0x76f988da,
+0x983e5152,0xa831c66d,0xb00327c8,0xbf597fc7,0xc6e00bf3,0xd5a79147,0x06ca6351,0x14292967,
+0x27b70a85,0x2e1b2138,0x4d2c6dfc,0x53380d13,0x650a7354,0x766a0abb,0x81c2c92e,0x92722c85,
+0xa2bfe8a1,0xa81a664b,0xc24b8b70,0xc76c51a3,0xd192e819,0xd6990624,0xf40e3585,0x106aa070,
+0x19a4c116,0x1e376c08,0x2748774c,0x34b0bcb5,0x391c0cb3,0x4ed8aa4a,0x5b9cca4f,0x682e6ff3,
+0x748f82ee,0x78a5636f,0x84c87814,0x8cc70208,0x90befffa,0xa4506ceb,0xbef9a3f7,0xc67178f2];
+function rotr(x,n){return ((x>>>n)|(x<<(32-n)))>>>0;}
+function sha256(str){
+  var H=[0x6a09e667,0xbb67ae85,0x3c6ef372,0xa54ff53a,0x510e527f,0x9b05688c,0x1f83d9ab,0x5be0cd19];
+  var bytes=[];
+  for(var i=0;i<str.length;i++)bytes.push(str.charCodeAt(i)&0xff);
+  var bitLen=bytes.length*8;
+  bytes.push(0x80);
+  while(bytes.length%64!==56)bytes.push(0);
+  bytes.push((bitLen/0x20000000)|0,(bitLen/0x2000000)|0,(bitLen/0x200000)|0,(bitLen/0x20000)|0,(bitLen/0x200)|0,(bitLen/0x2)|0,(bitLen/0x100)&0xff,bitLen&0xff);
+  var w=new Array(64);
+  for(var off=0;off<bytes.length;off+=64){
+    for(i=0;i<16;i++)w[i]=((bytes[off+i*4]<<24)|(bytes[off+i*4+1]<<16)|(bytes[off+i*4+2]<<8)|bytes[off+i*4+3])>>>0;
+    for(i=16;i<64;i++){
+      var s0=rotr(w[i-15],7)^rotr(w[i-15],18)^(w[i-15]>>>3);
+      var s1=rotr(w[i-2],17)^rotr(w[i-2],19)^(w[i-2]>>>10);
+      w[i]=(w[i-16]+s0+w[i-7]+s1)>>>0;
+    }
+    var a=H[0],b=H[1],c=H[2],d=H[3],e=H[4],f=H[5],g=H[6],h=H[7];
+    for(i=0;i<64;i++){
+      var S1=rotr(e,6)^rotr(e,11)^rotr(e,25);
+      var ch=(e&f)^(~e&g);
+      var t1=(h+S1+ch+SHA256K[i]+w[i])>>>0;
+      var S0=rotr(a,2)^rotr(a,13)^rotr(a,22);
+      var maj=(a&b)^(a&c)^(b&c);
+      var t2=(S0+maj)>>>0;
+      h=g;g=f;f=e;e=(d+t1)>>>0;d=c;c=b;b=a;a=(t1+t2)>>>0;
+    }
+    H[0]=(H[0]+a)>>>0;H[1]=(H[1]+b)>>>0;H[2]=(H[2]+c)>>>0;H[3]=(H[3]+d)>>>0;
+    H[4]=(H[4]+e)>>>0;H[5]=(H[5]+f)>>>0;H[6]=(H[6]+g)>>>0;H[7]=(H[7]+h)>>>0;
+  }
+  var out=[];
+  for(i=0;i<8;i++)out.push((H[i]>>>24)&255,(H[i]>>>16)&255,(H[i]>>>8)&255,H[i]&255);
+  return out;
+}
+
+var SBOX=[
+0x63,0x7c,0x77,0x7b,0xf2,0x6b,0x6f,0xc5,0x30,0x01,0x67,0x2b,0xfe,0xd7,0xab,0x76,
+0xca,0x82,0xc9,0x7d,0xfa,0x59,0x47,0xf0,0xad,0xd4,0xa2,0xaf,0x9c,0xa4,0x72,0xc0,
+0xb7,0xfd,0x93,0x26,0x36,0x3f,0xf7,0xcc,0x34,0xa5,0xe5,0xf1,0x71,0xd8,0x31,0x15,
+0x04,0xc7,0x23,0xc3,0x18,0x96,0x05,0x9a,0x07,0x12,0x80,0xe2,0xeb,0x27,0xb2,0x75,
+0x09,0x83,0x2c,0x1a,0x1b,0x6e,0x5a,0xa0,0x52,0x3b,0xd6,0xb3,0x29,0xe3,0x2f,0x84,
+0x53,0xd1,0x00,0xed,0x20,0xfc,0xb1,0x5b,0x6a,0xcb,0xbe,0x39,0x4a,0x4c,0x58,0xcf,
+0xd0,0xef,0xaa,0xfb,0x43,0x4d,0x33,0x85,0x45,0xf9,0x02,0x7f,0x50,0x3c,0x9f,0xa8,
+0x51,0xa3,0x40,0x8f,0x92,0x9d,0x38,0xf5,0xbc,0xb6,0xda,0x21,0x10,0xff,0xf3,0xd2,
+0xcd,0x0c,0x13,0xec,0x5f,0x97,0x44,0x17,0xc4,0xa7,0x7e,0x3d,0x64,0x5d,0x19,0x73,
+0x60,0x81,0x4f,0xdc,0x22,0x2a,0x90,0x88,0x46,0xee,0xb8,0x14,0xde,0x5e,0x0b,0xdb,
+0xe0,0x32,0x3a,0x0a,0x49,0x06,0x24,0x5c,0xc2,0xd3,0xac,0x62,0x91,0x95,0xe4,0x79,
+0xe7,0xc8,0x37,0x6d,0x8d,0xd5,0x4e,0xa9,0x6c,0x56,0xf4,0xea,0x65,0x7a,0xae,0x08,
+0xba,0x78,0x25,0x2e,0x1c,0xa6,0xb4,0xc6,0xe8,0xdd,0x74,0x1f,0x4b,0xbd,0x8b,0x8a,
+0x70,0x3e,0xb5,0x66,0x48,0x03,0xf6,0x0e,0x61,0x35,0x57,0xb9,0x86,0xc1,0x1d,0x9e,
+0xe1,0xf8,0x98,0x11,0x69,0xd9,0x8e,0x94,0x9b,0x1e,0x87,0xe9,0xce,0x55,0x28,0xdf,
+0x8c,0xa1,0x89,0x0d,0xbf,0xe6,0x42,0x68,0x41,0x99,0x2d,0x0f,0xb0,0x54,0xbb,0x16];
+var RCON=[0x01,0x02,0x04,0x08,0x10,0x20,0x40,0x80,0x1b,0x36];
+
+function expandKey(key){
+  var w=new Uint8Array(240);
+  for(var i=0;i<32;i++)w[i]=key[i];
+  var rcon=0;
+  for(i=8;i<60;i++){
+    var t=[w[(i-1)*4],w[(i-1)*4+1],w[(i-1)*4+2],w[(i-1)*4+3]];
+    if(i%8===0){
+      t=[t[1],t[2],t[3],t[0]];
+      for(var j=0;j<4;j++)t[j]=SBOX[t[j]];
+      t[0]^=RCON[rcon++];
+    }else if(i%8===4){
+      for(j=0;j<4;j++)t[j]=SBOX[t[j]];
+    }
+    for(j=0;j<4;j++)w[i*4+j]=(w[(i-8)*4+j]^t[j]);
+  }
+  return w;
+}
+function gm(a,b){
+  var p=0,hb;
+  for(var i=0;i<8;i++){
+    if(b&1)p^=a;
+    hb=a&0x80;
+    a=(a<<1)&0xff;
+    if(hb)a^=0x1b;
+    b>>>=1;
+  }
+  return p;
+}
+function shiftRows(s){
+  var t=s.slice();
+  for(var col=0;col<4;col++)
+    for(var row=0;row<4;row++)
+      s[col*4+row]=t[((col+row)%4)*4+row];
+}
+function mixColumns(s){
+  for(var c=0;c<4;c++){
+    var i=c*4,a0=s[i],a1=s[i+1],a2=s[i+2],a3=s[i+3];
+    s[i]=gm(a0,2)^gm(a1,3)^a2^a3;
+    s[i+1]=a0^gm(a1,2)^gm(a2,3)^a3;
+    s[i+2]=a0^a1^gm(a2,2)^gm(a3,3);
+    s[i+3]=gm(a0,3)^a1^a2^gm(a3,2);
+  }
+}
+function aesEncrypt(plain,key){
+  var rk=expandKey(key);
+  var padded=plain.slice();
+  var pad=16-(padded.length%16);
+  for(var i=0;i<pad;i++)padded.push(pad);
+  var out=[];
+  for(var off=0;off<padded.length;off+=16){
+    var s=padded.slice(off,off+16);
+    var round;
+    for(round=0;round<16;round++)s[round]^=rk[round];
+    for(round=1;round<14;round++){
+      for(var k=0;k<16;k++)s[k]=SBOX[s[k]];
+      shiftRows(s);
+      mixColumns(s);
+      for(k=0;k<16;k++)s[k]^=rk[round*16+k];
+    }
+    for(k=0;k<16;k++)s[k]=SBOX[s[k]];
+    shiftRows(s);
+    for(k=0;k<16;k++)s[k]^=rk[14*16+k];
+    for(k=0;k<16;k++)out.push(s[k]);
+  }
+  return out;
+}
+
+function pickValue(hex){
+  var t=hex.slice(0,7).replace(/[^0-9]/g,'');
+  if(!t)t=hex.replace(/[^0-9]/g,'').slice(0,7);
+  if(!t)t='666';
+  return t;
+}
+
+var levelInfo=[
+  [0,'人品稀薄如纸','人品余额已不足，宜每日扶一位老奶奶过马路（前提是先找得到老奶奶）。'],
+  [500,'人品岌岌可危','出门宜先查看黄历——不对，应查看本生成器。今日不宜立 Flag。'],
+  [1500,'人品勉强及格','处于薛定谔的靠谱状态：又菜又爱玩，但偶尔灵光一现。'],
+  [3000,'人品稳中有升','属于「看起来能处」的类型，还差一个「真能处」的证明。'],
+  [6000,'人品相当充沛','可兑换一张「今天不会踩到狗屎」体验卡，有效期至今晚十二点。'],
+  [9000,'人品爆棚','宇宙欠此人一句谢谢，宜趁热买彩票——虽然中奖概率并不会因此改变。'],
+  [Infinity,'人品溢出','本生成器已算不出其人品，只能判定：此为量子态好人。']
+];
+function rpLevel(v){
+  for(var i=0;i<levelInfo.length;i++)if(v<levelInfo[i][0])return levelInfo[i];
+  return levelInfo[levelInfo.length-1];
+}
+
+var dayTrait=[
+  ['木',['生性带点倔强，像一棵不肯低头的小树，谁劝都不听，但关键时刻又很仗义。',
+         '心性温和却有主见，如竹有节，外柔内刚，认准的事九头牛也拉不回。',
+         '自带蓬勃生命力，遇事容易上头，但也容易振作，属于「打不倒的小强」。']],
+  ['火',['热情如三伏天的太阳，来得快去得也快，做决定全凭一股冲劲。',
+         '性子直率藏不住话，喜怒都写在脸上，像一堆噼啪作响的篝火。',
+         '行动力满分，是朋友圈里的气氛担当，偶尔也把自己烧得焦头烂额。']],
+  ['土',['稳如老狗，自带拖延症晚期特效，但答应过的事大概率会记得。',
+         '性情敦厚，靠谱指数颇高，是团队里的定海神针，就是反应略慢半拍。',
+         '凡事求稳，不爱折腾，守成有余而开拓不足，胜在持久。']],
+  ['金',['精明得像台计算器，买东西必砍价，人品守恒全靠精打细算。',
+         '外冷内热，原则性强，说话直接但不记仇，是「刀子嘴豆腐心」的典型。',
+         '重义气也重利益，边界感极强，别人看是冷面，其实是懒得应付。']],
+  ['水',['圆滑善变，今天说东明天说西，但脑回路永远比别人多绕两圈。',
+         '心思细腻，共情力强，人缘极好，就是主意变得快，连自己都追不上。',
+         '能屈能伸，遇强则强，天生自来熟，适合当群体里的润滑剂。']]
+];
+var missPool={
+  木:['五行缺木，命中少几分生机，可于床头置一盆栽化解，据说效果立竿见影（并没有）。',
+      '五行缺木，适合多亲近大自然，周末去公园吸一口「木气」，胜过灵芝补品。'],
+  火:['五行缺火，热情储备偏低，宜以火锅进补火元素，副作用是会上火。',
+      '五行缺火，可在晴天多晒太阳，把「火气」晒回来，气色都红润。'],
+  土:['五行缺土，稳定性有待充值，可养乌龟一只以固其本，乌龟是否同意尚待考证。',
+      '五行缺土，宜多接地气，赤脚踩草地或养点花花草草，稳住根基。'],
+  金:['五行缺金，财运稀薄，可换金色钱包一枚，至少看起来很有钱。',
+      '五行缺金，宜适当戴点金银首饰，补的不止是气场，还有自信。'],
+  水:['五行缺水，变通之力堪忧，宜多饮水，科学依据暂无。',
+      '五行缺水，可在办公桌放个小鱼缸，水一旺，运势也旺（大概）。']
+};
+var strongPool={
+  木:['命中木气最旺，生机勃勃，适合搞创意、养绿植、做长期主义。',
+      '木旺则仁，其人重情重义，就是偶尔优柔寡断，宜当机立断。'],
+  火:['命中火气最旺，热情四射，适合当气氛担当或团队发动机。',
+      '火旺则礼，行事光明磊落，唯一要防的是「三分钟热度」。'],
+  土:['命中土气最旺，稳重踏实，适合守成积累，是靠谱的老黄牛。',
+      '土旺则信，一诺千金，但守成有余，建议偶尔跳出舒适圈。'],
+  金:['命中金气最旺，果敢刚毅，天生适合拍板做决断。',
+      '金旺则义，重原则讲底线，宜收一收锋芒，以免伤人伤己。'],
+  水:['命中水气最旺，机敏善变，脑子转得快，适合智取而非强攻。',
+      '水旺则智，点子多、人缘好，只是主意太多，宜挑一个坚持到底。']
+};
+var allPool=[
+  '五行俱全，物以稀为贵、多则贱，故此「全」约等于「普通」。',
+  '五行平衡得恰到好处，此八字在算命界叫「吉」，在算法界叫「随机」。',
+  '五行无缺，此生福泽均衡，只是缺一点「惊喜」，建议主动搞点事情。'
+];
+var namePool=[
+  '此名笔画较多，日常签名易被吐槽「怎么还没写完」，侧面反映其耐力惊人。',
+  '此名笔画适中，签名一气呵成，属于写字楼里的扫地僧式人物。',
+  '此名单字成局，气场简单粗暴，人狠话不多，二维码扫出来都是「666」。',
+  '此名读起来朗朗上口，自带传播属性，适合起外号，也适合上排行榜。',
+  '此名笔锋藏锋，寓意深远，属于「小时候觉得土，长大了觉得香」的类型。',
+  '此名五行搭配均衡，自带好记光环，长辈叫起来特别顺口。'
+];
+var careerPool=[
+  '事业运：适合闷声干大事，工位越靠墙，业绩越靠前。',
+  '事业运：是块做「别人家的孩子」的料，升职加薪全看领导记不记得你。',
+  '事业运：天生适合自由发挥，打卡制度是此命最大的敌人。',
+  '事业运：贵人在远方，机会在路上，适合「走出去」而非「想太多」。',
+  '事业运：稳步上升期，忌跳槽冲动，宜静待时机，一鸣惊人。',
+  '事业运：八字带「摸鱼属性」，好在摸鱼摸得稳，也能摸出成绩。'
+];
+var wealthPool=[
+  '财运：正财稳健，偏财全看运气，建议副业从摆摊做起。',
+  '财运：财库偏小，但理财有道，属于「细水长流」型选手。',
+  '财运：命中带「财来财去」，存不住钱是命，存得住是本事。',
+  '财运：近期有破财之象，双十一务必管住手。',
+  '财运：贵人送财，宜多结识朋友，红包会从意想不到的地方来。',
+  '财运：财神位在东南，手机往东南一放，财运自会增长（无科学依据）。'
+];
+var lovePool=[
+  '感情运：桃花星星点点，需主动出击，躺平等桃花容易错过花期。',
+  '感情运：属于「慢热型」，表面高冷，熟了之后话比谁都多。',
+  '感情运：红鸾星动，宜多出门，爱情会在不经意间敲响房门。',
+  '感情运：缘分有早有晚，不必焦虑，算法显示今年有戏的概率为 50%（一半有戏，一半没戏）。',
+  '感情运：此命重情，易被感动，也易被「画大饼」，建议留一分清醒。',
+  '感情运：相处之道胜于相识之缘，稳住心态，细水长流才是真。'
+];
+var healthPool=[
+  '健康运：底子不错，忌熬夜，忌空腹吃辣，忌不信邪。',
+  '健康运：颈椎是重点保护对象，低头玩手机的时长请控制在「够用」。',
+  '健康运：身体像银行，透支要还，建议多喝水、多伸懒腰。',
+  '健康运：运势平稳，只需防「过劳」，劳逸结合即是养生。',
+  '健康运：五行相生，气血通畅，唯一隐患是「饿」和「困」。'
+];
+var luckPool=[
+  '贵人运：近期会有贵人相助，特征为「一看就是能帮上忙的人」。',
+  '贵人运：出门遇贵人，前提是你得出门。',
+  '贵人运：命中自带「招贵人」体质，但也自带「坑队友」体质，需自行判断。',
+  '贵人运：东南方有贵人，西北方也有贵人，全看你往哪边走。',
+  '贵人运：宜主动社交，人脉即钱脉，多一个朋友多一条路。'
+];
+var dailyTip=[
+  '今日宜：早睡早起；忌：开导恋爱脑朋友。',
+  '今日宜：整理房间；忌：整理房间（容易翻出陈年旧账）。',
+  '今日宜：按时吃饭；忌：一边吃饭一边刷手机。',
+  '今日宜：夸人一句；忌：背后议论，会被算法记录。',
+  '今日宜：多笑一笑；忌：把笑挂在脸上吓到别人。',
+  '今日宜：量力而行；忌：立「今年必瘦」的 Flag。'
+];
+var verdictPool=[
+  '综合来看，此命属「运气不够、硬撑来凑」的类型，人设相当稳固。',
+  '综上所述，其人品处于动态平衡之中，波动完全取决于当天吃没吃饭。',
+  '算命先生有云：信则灵，不信则灵验。本生成器同理。',
+  '总体评价：活生生一个人，且大概率是好人，具体概率由人品值决定。',
+  '此命格局不凡，建议不要深究，深究也是这套结论。',
+  '综合八字与五行，此命大概率平安顺遂，小概率大起大落，其余看心情。',
+  '以算法观之，此命为「平均以上，惊喜未满」，值得继续观望。',
+  '结论：能处。建议保持现状，勿要熬夜透支人品。'
+];
+var seedTexts={
+  low:['八字显示早年有所透支，宜早睡早起，明日重新做人。',
+       '人品值偏低，建议多做好事，好让算法下次看得顺眼一点。',
+       '命局偏「欠」，欠的这部分正在路上，需要攒一攒人品。'],
+  mid:['命局波动较大，人品值或随体重浮动，宜保持匀速成长。',
+       '人品处于「够用但不多」的区间，关键时刻请提前充值。',
+       '运势平稳，人品输出稳定，属于不拖后腿也不出风头的类型。'],
+  high:['八字显示似有天选之相，宜保持低调，免得被算法盯上回炉重造。',
+        '人品值爆棚，建议保持善良，毕竟「善人善己」是算法都认可的真理。',
+        '此命被算法标注为「优质人类」，请继续发扬，勿要辜负评分。']
+};
+var blessings={
+    木: [
+    '愿命主如春木逢霖，诸事抽枝发芽，所愿皆能生长成真。',
+    '此命根基深厚如松柏，任风霜而不折，岁岁常青福运长。',
+    '祝命主新芽破土之势不可挡，所行之路处处逢春，步步生花。',
+    '愿此命如林中大树，枝繁叶茂庇护四方，福泽深厚根基稳。',
+    '命主自有枯荣不惧之气魄，人生低谷皆为来日蓬勃蓄力。'
+  ],
+  火: [
+    '愿命主如烈焰当空照，前程似锦光芒万丈，所到之处皆温暖。',
+    '此命自带三昧真火之热忱，万事皆可用热情化解，无坚不摧。',
+    '祝命主心中永燃不灭之火，黑夜中有光，寒冬里有暖。',
+    '愿此命如火德星君护佑，贵人相助左右逢源，运势红红火火。',
+    '命主命格自带光芒，走到哪里都能成为人群中最耀眼的风景。'
+  ],
+  土: [
+    '愿命主如大地厚德载物，所种皆有所收，所耕皆有所获。',
+    '此命稳如泰山不动摇，脚踏实地一步一个脚印，终成大器。',
+    '祝命主沃土千里粮满仓，勤劳致富根基稳，福禄寿喜聚满堂。',
+    '愿此命如黄土地孕育万物，包容万物亦成就万物，厚积薄发。',
+    '命主自有稳中求胜之道，不急不躁静待花开，丰收自来敲门。'
+  ],
+  金: [
+    '愿命主金玉满堂财气通，日进斗金不费力，富贵荣华享不尽。',
+    '此命自带锋芒锐不可当，刚毅果断破万难，所向披靡立大功。',
+    '祝命主如真金不怕火炼，历经磨砺愈发闪耀，价值连城人人羡。',
+    '愿此命财星高照金银满屋，正财偏财齐入库，花钱赚钱两不误。',
+    '命主有金石之志坚韧不拔，一朝发力如利剑出鞘，锐不可挡。'
+  ],
+  水: [
+    '愿命主如大江东去浪淘沙，遇山则绕遇阻则变，通达天下。',
+    '此命灵动如水无定形，随机应变皆有机，处处都是康庄道。',
+    '祝命主智慧深如东海广如洋，举一反三触类旁通，难题皆成垫脚石。',
+    '愿此命顺流而下时来运转，纵有险滩亦能化险为夷，柳暗花明。',
+    '命主自有水滴石穿之恒心，以柔克刚不争而善胜，细水长流福绵长。'
+  ]
+};
+
+var nameEl=document.getElementById('name'),birthEl=document.getElementById('birth'),hourEl=document.getElementById('hour');
+var warnModal=document.getElementById('warnModal');
+document.getElementById('warnOk').addEventListener('click',function(){warnModal.style.display='none';});
+var form=document.getElementById('form');
+var inputPanel=document.getElementById('inputPanel'),calcPanel=document.getElementById('calcPanel'),resultPanel=document.getElementById('resultPanel');
+var calcStep=document.getElementById('calcStep'),calcBar=document.getElementById('calcBar'),calcLog=document.getElementById('calcLog');
+
+function sleep(ms){return new Promise(function(r){setTimeout(r,ms);});}
+
+form.addEventListener('submit',function(e){
+  e.preventDefault();
+  if(!nameEl.value.trim()||!birthEl.value)return;
+  runCalc();
+});
+
+document.getElementById('again').addEventListener('click',function(){
+  resultPanel.classList.add('hidden');
+  inputPanel.classList.remove('hidden');
+});
+
+function renderResult(pillars,valueHex,hex,name,birth){
+  var num=parseInt(valueHex,10);
+  var lv=rpLevel(num);
+  document.getElementById('rpValue').textContent=Number(valueHex).toLocaleString();
+  document.getElementById('rpLevel').textContent=lv[1];
+
+  var names=['年柱','月柱','日柱','时柱'];
+  var keys=['year','month','day','hour'];
+  var bazi=document.getElementById('bazi');
+  bazi.innerHTML='';
+  var dayStemEl=pillars.day.s;
+  for(var i=0;i<4;i++){
+    var p=pillars[keys[i]];
+    var wx=WX[p.s];
+    var div=document.createElement('div');
+    div.className='pillar';
+    div.innerHTML='<span class="pTitle">'+names[i]+'</span>'+
+      '<span class="pStem">'+STEMS[p.s]+'</span>'+
+      '<span class="pBranch">'+BRANCHES[p.b]+'</span>'+
+      '<span class="pWx">'+STEM_WX_NAME[p.s]+' '+BRANCH_WX[p.b]+'</span>';
+    bazi.appendChild(div);
+  }
+
+  var count={木:0,火:0,土:0,金:0,水:0};
+  var allChars=[];
+  for(i=0;i<4;i++){
+    var p=pillars[keys[i]];
+    count[WX[p.s]]++;count[BRANCH_WX[p.b]]++;
+    allChars.push(STEMS[p.s]+BRANCHES[p.b]);
+  }
+  var order=['木','火','土','金','水'];
+  var row=document.getElementById('wxRow');
+  row.innerHTML='';
+  var missing=[];
+  for(i=0;i<5;i++)if(count[order[i]]===0)missing.push(order[i]);
+  for(i=0;i<5;i++){
+    var chip=document.createElement('span');
+    chip.className='chip'+(count[order[i]]===0?' miss':'');
+    chip.innerHTML=order[i]+' <b>×'+count[order[i]]+'</b>';
+    row.appendChild(chip);
+  }
+  if(missing.length===1){
+    var m=document.createElement('span');
+    m.className='chip miss';
+    m.innerHTML='五行缺 <b>'+missing[0]+'</b>';
+    row.appendChild(m);
+  }
+
+  var seed=hash(name+'|'+birth+'|'+num);
+  var para='<p>命主八字为 <b>'+allChars.join(' · ')+'</b>，日主<b>'+STEM_WX_NAME[dayStemEl]+'</b>。'+dayTrait[Math.floor(dayStemEl/2)][1][seed%dayTrait[Math.floor(dayStemEl/2)][1].length]+'</p>';
+  if(missing.length===1)para+='<p>'+missPool[missing[0]][seed%missPool[missing[0]].length]+'</p>';
+  else para+='<p>'+allPool[seed%allPool.length]+'</p>';
+  var strongEl=order[0],strongN=0;
+  for(i=0;i<5;i++)if(count[order[i]]>strongN){strongN=count[order[i]];strongEl=order[i];}
+  para+='<p>'+strongPool[strongEl][seed%strongPool[strongEl].length]+'</p>';
+  para+='<p>'+namePool[seed%namePool.length]+'</p>';
+  if(num<5000)para+='<p>'+seedTexts.low[seed%seedTexts.low.length]+'</p>';
+  else if(num<9000)para+='<p>'+seedTexts.mid[seed%seedTexts.mid.length]+'</p>';
+  else para+='<p>'+seedTexts.high[seed%seedTexts.high.length]+'</p>';
+  para+='<p>'+careerPool[seed%careerPool.length]+'</p>';
+  para+='<p>'+wealthPool[(seed+1)%wealthPool.length]+'</p>';
+  para+='<p>'+lovePool[(seed+2)%lovePool.length]+'</p>';
+  para+='<p>'+healthPool[(seed+3)%healthPool.length]+'</p>';
+  para+='<p>'+luckPool[(seed+4)%luckPool.length]+'</p>';
+  para+='<p>'+dailyTip[(seed+5)%dailyTip.length]+'</p>';
+  para+='<p class="verdict">'+verdictPool[seed%verdictPool.length]+'</p>';
+  var dayWx=WX[dayStemEl];
+  para+='<p class="bless">开运吉祥话 · '+dayWx+'：'+blessings[dayWx][seed%blessings[dayWx].length]+'</p>';
+  if(missing.length===1){
+    var me=missing[0];
+    para+='<p class="bless">五行补缺 · '+me+'：'+blessings[me][(seed+1)%blessings[me].length]+'</p>';
+  }
+
+  var readout=document.getElementById('readout');
+  readout.innerHTML=para;
+  readout.classList.remove('hidden');
+  resultPanel.classList.remove('hidden');
+}
+
+async function runCalc(){
+  var name=nameEl.value.trim();
+  var birth=birthEl.value;
+  var parts=birth.split('-');
+  var y=parseInt(parts[0],10),m=parseInt(parts[1],10),d=parseInt(parts[2],10);
+  var hval=hourEl.value.trim();
+  var hour=null;
+  if(hval){var tp=hval.split(':').map(Number);hour=tp[0];}
+  var pillars=computePillars(y,m,d,hour,name);
+  var hourNote=hour==null?'（未填时间，时柱按姓名随机推演）':'（按所填出生时间推演）';
+
+  var key=sha256(birth);
+  var plain=utf8(name);
+  var ct=aesEncrypt(plain,key);
+  var hex=toHex(ct);
+  var valueHex=pickValue(hex);
+
+  inputPanel.classList.add('hidden');
+  resultPanel.classList.add('hidden');
+  calcPanel.classList.remove('hidden');
+  calcBar.style.width='0%';
+  setDensity(200);
+
+  var steps=[
+    ['正在读取生辰八字…','生辰 '+birth+' · 名讳 '+name],
+    ['正在推演四柱（年、月、日、时）…',
+     '年柱 '+STEMS[pillars.year.s]+BRANCHES[pillars.year.b]+' · 月柱 '+STEMS[pillars.month.s]+BRANCHES[pillars.month.b]+' · 日柱 '+STEMS[pillars.day.s]+BRANCHES[pillars.day.b]+' · 时柱 '+STEMS[pillars.hour.s]+BRANCHES[pillars.hour.b]+hourNote],
+    ['正在推演五行分布与日主…','定日主、查五行、寻所缺、观所旺'],
+    ['正在量化人品值…','综合八字、五行与名讳，演算人品数值（结果已封存，原理不可考）'],
+    ['正在生成命理鉴定与开运建议…','逐条推敲，句句皆属瞎编'],
+    ['瞎编完成！','以上内容与事实无关，如有雷同，纯属巧合。']
+  ];
+
+  for(var i=0;i<steps.length;i++){
+    calcStep.textContent=steps[i][0];
+    calcLog.textContent=steps[i][1];
+    calcBar.style.width=((i+1)/steps.length*100)+'%';
+    await sleep(i===steps.length-1?700:780);
+  }
+
+  calcPanel.classList.add('hidden');
+  renderResult(pillars,valueHex,hex,name,birth);
+  setDensity(70);
+}
+
+var canvas=document.getElementById('fx');
+var ctx=canvas.getContext('2d');
+var W,H,partsArr=[],density=70,targetDensity=70,calcMode=false;
+
+function resize(){W=canvas.width=innerWidth;H=canvas.height=innerHeight;}
+addEventListener('resize',resize);resize();
+
+function makeParticle(burst){
+  var hue=Math.random()*360;
+  var isStreak=Math.random()<0.25;
+  return {
+    x:Math.random()*W,y:Math.random()*H,
+    vx:(Math.random()-0.5)*(isStreak?2.4:0.8),
+    vy:(Math.random()-0.5)*(isStreak?2.4:0.8),
+    hue:hue,size:isStreak?Math.random()*2+1:Math.random()*3.2+1,
+    streak:isStreak,life:Math.random()*60+20,maxLife:80,
+    phase:Math.random()*Math.PI*2,
+    dense:burst?Math.random()<0.85:Math.random()<0.3
+  };
+}
+function setDensity(n){targetDensity=n;calcMode=n>100;}
+function burst(){
+  for(var i=0;i<26;i++)partsArr.push(makeParticle(true));
+}
+
+function draw(t){
+  density+=(targetDensity-density)*0.04;
+  while(partsArr.length<Math.round(density))partsArr.push(makeParticle(false));
+  if(partsArr.length>Math.round(density)+10)partsArr.splice(Math.round(density)+10);
+
+  ctx.globalCompositeOperation='source-over';
+  ctx.fillStyle='rgba(0,0,0,0.22)';
+  ctx.fillRect(0,0,W,H);
+  ctx.globalCompositeOperation='lighter';
+  ctx.shadowBlur=18;
+  var len=partsArr.length;
+  for(var i=0;i<len;i++){
+    var p=partsArr[i];
+    p.phase+=0.02;
+    p.x+=p.vx+Math.sin(p.phase)*0.35;
+    p.y+=p.vy+Math.cos(p.phase*0.7)*0.35;
+    if(p.x<-20)p.x=W+20;if(p.x>W+20)p.x=-20;
+    if(p.y<-20)p.y=H+20;if(p.y>H+20)p.y=-20;
+    var lite=(p.dense?1:0.45)*(Math.sin(t/900+p.phase)*0.4+0.6);
+    ctx.shadowColor='hsla('+p.hue+',100%,62%,1)';
+    ctx.fillStyle='hsla('+p.hue+',100%,'+(58+Math.random()*10)+'%,'+(0.35+0.55*lite)+')';
+    var s=p.size*(p.dense?1.35:1);
+    if(p.streak){
+      ctx.fillRect(p.x,p.y,s*5,s);
+    }else{
+      ctx.beginPath();
+      ctx.arc(p.x,p.y,s,0,Math.PI*2);
+      ctx.fill();
+    }
+  }
+  ctx.globalCompositeOperation='source-over';
+  ctx.shadowBlur=0;
+  requestAnimationFrame(draw);
+}
+requestAnimationFrame(draw);
+setInterval(function(){if(calcMode)burst();},140);
+</script>
+</body>
+</html>

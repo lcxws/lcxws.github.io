@@ -311,6 +311,20 @@
   </div>
 </section>
 
+<!-- ================= 留言板 ================= -->
+<section id="guestbook" class="sec-deep">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <span class="eyebrow">GUESTBOOK</span>
+      <h2>留言板</h2>
+      <p>用 GitHub 账号登录就能留一句话</p>
+    </div>
+    <div class="panel reveal" style="padding:26px;">
+      <div id="guestbook-box"></div>
+    </div>
+  </div>
+</section>
+
 <!-- ================= 页脚 ================= -->
 <footer>
   <span class="pixel">BLUE SHARK · 2026</span>
@@ -330,6 +344,49 @@
 </div>
 
 <button class="to-top" title="回到顶部">↑</button>
+<script>
+  /* ===== 留言板配置（giscus · 基于 GitHub Discussions） =====
+     启用步骤：
+     1. 仓库 Settings → 勾选 Discussions，启用讨论区
+     2. 打开 https://giscus.app ，仓库填 lcxws/lcxws.github.io，选好分类（如 Announcements）
+     3. 把生成的 data-repo-id 和 data-category-id 分别填进下面两个空引号里
+     填好刷新即生效；未填时页面显示"待配置"提示。 */
+  window.GUESTBOOK = {
+    repo: 'lcxws/lcxws.github.io',
+    repoId: '',
+    category: 'Announcements',
+    categoryId: ''
+  };
+  (function(){
+    var box = document.getElementById('guestbook-box');
+    if (!box) return;
+    var cfg = window.GUESTBOOK || {};
+    if (!cfg.repoId || !cfg.categoryId){
+      box.innerHTML = '<div style="text-align:center;color:var(--muted);font-size:14px;padding:24px 12px;">' +
+        '留言功能待配置：请先在仓库开启 Discussions，再用 ' +
+        '<a href="https://giscus.app" target="_blank" rel="noopener" style="color:var(--cyan-soft);font-weight:700;">giscus.app</a> ' +
+        '获取 repo-id / category-id 填入本页脚本配置后即可使用。</div>';
+      return;
+    }
+    var s = document.createElement('script');
+    s.src = 'https://giscus.app/client.js';
+    s.setAttribute('data-repo', cfg.repo);
+    s.setAttribute('data-repo-id', cfg.repoId);
+    s.setAttribute('data-category', cfg.category);
+    s.setAttribute('data-category-id', cfg.categoryId);
+    s.setAttribute('data-mapping', 'pathname');
+    s.setAttribute('data-strict', '0');
+    s.setAttribute('data-reactions-enabled', '1');
+    s.setAttribute('data-emit-metadata', '0');
+    s.setAttribute('data-input-position', 'top');
+    s.setAttribute('data-theme', 'dark');
+    s.setAttribute('data-lang', 'zh-CN');
+    s.setAttribute('data-loading', 'lazy');
+    s.setAttribute('crossorigin', 'anonymous');
+    s.async = true;
+    box.appendChild(s);
+  })();
+</script>
 <script src="assets/js/site.js"></script>
 </body>
 </html>
