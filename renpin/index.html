@@ -18,7 +18,7 @@
 
   #fx{position:fixed;inset:0;z-index:0;display:block;}
   .veil{position:fixed;inset:0;z-index:1;pointer-events:none;
-    background:radial-gradient(circle at 50% 32%,rgba(0,0,0,0) 0%,rgba(0,0,0,.78) 100%);}
+    background:radial-gradient(circle at 50% 32%,rgba(0,0,0,0) 0%,rgba(0,0,0,.5) 100%);}
 
   .top{position:relative;z-index:2;max-width:860px;margin:0 auto;padding:26px 20px 0;display:flex;align-items:center;justify-content:space-between;gap:16px;}
   .home{font-size:12.5px;font-weight:800;letter-spacing:.12em;color:#aab0d0;
@@ -127,12 +127,115 @@
 
   @media (prefers-reduced-motion:reduce){.loader{animation-duration:2s;}}
   @media (max-width:560px){.panel{padding:28px 18px;}.bazi{gap:8px;}.pillar .pStem,.pillar .pBranch{font-size:26px;}}
+
+  /* ===== 主题切换 ===== */
+  .theme-toggle{cursor:pointer;flex:none;width:44px;height:44px;border-radius:50%;
+    border:1px solid rgba(255,255,255,.35);background:rgba(10,12,26,.55);backdrop-filter:blur(8px);
+    font-size:20px;line-height:1;display:flex;align-items:center;justify-content:center;transition:.25s;}
+  .theme-toggle:hover{transform:scale(1.1);box-shadow:0 0 18px rgba(21,30,197,.7);}
+
+  html[data-theme="day"] body{background:#eef1fb;color:#232a50;}
+  html[data-theme="day"] .veil{background:radial-gradient(circle at 50% 32%,rgba(255,255,255,0) 0%,rgba(120,132,180,.28) 100%);}
+  html[data-theme="day"] .site{color:#8b93b8;}
+  html[data-theme="day"] .home{color:#2c3560;border-color:rgba(21,30,197,.35);}
+  html[data-theme="day"] .home:hover{color:#fff;background:#151EC5;border-color:#151EC5;}
+  html[data-theme="day"] .theme-toggle{border-color:rgba(21,30,197,.4);background:rgba(255,255,255,.75);}
+  html[data-theme="day"] .panel{background:linear-gradient(160deg,rgba(21,30,197,.08),rgba(255,255,255,.9) 62%);
+    border-color:rgba(21,30,197,.16);box-shadow:0 16px 44px -24px rgba(21,30,197,.45),0 0 30px -20px rgba(214,0,33,.25);}
+  html[data-theme="day"] h1{
+    background:linear-gradient(90deg,#20264a,#3a44ff,#4a5278 60%,#ff5a72);
+    -webkit-background-clip:text;background-clip:text;
+    filter:drop-shadow(0 0 10px rgba(21,30,197,.22)) drop-shadow(0 0 22px rgba(214,0,33,.15));}
+  html[data-theme="day"] .sub{color:#4a5278;}
+  html[data-theme="day"] .sub b{color:#e23a52;}
+  html[data-theme="day"] label span{color:#4a5278;}
+  html[data-theme="day"] input{background:rgba(255,255,255,.85);border-color:rgba(21,30,197,.25);color:#1c2250;}
+  html[data-theme="day"] input:focus{border-color:#151EC5;box-shadow:0 0 0 3px rgba(21,30,197,.18);}
+  html[data-theme="day"] .calc h2{color:#1c2250;}
+  html[data-theme="day"] .progress{background:rgba(21,30,197,.12);}
+  html[data-theme="day"] .calcLog{color:#6a7396;}
+  html[data-theme="day"] .ribbon{background:linear-gradient(90deg,#fff,#ffd0d8);color:#151EC5;}
+  html[data-theme="day"] #rpValue{color:#1c2250;text-shadow:0 0 20px rgba(21,30,197,.3),0 0 36px rgba(214,0,33,.2);}
+  html[data-theme="day"] .rpLevel{color:#d63a52;}
+  html[data-theme="day"] .pillar{border-color:rgba(21,30,197,.2);
+    background:linear-gradient(160deg,rgba(21,30,197,.14),rgba(255,255,255,.6));}
+  html[data-theme="day"] .pillar .pTitle{color:#4a5278;}
+  html[data-theme="day"] .pillar .pStem{color:#1c2250;text-shadow:0 0 14px rgba(21,30,197,.35);}
+  html[data-theme="day"] .pillar .pBranch{color:#d63a52;text-shadow:0 0 12px rgba(214,0,33,.3);}
+  html[data-theme="day"] .pillar .pWx{color:#6a7396;}
+  html[data-theme="day"] .chip{color:#2c3560;background:rgba(255,255,255,.65);border-color:rgba(21,30,197,.22);}
+  html[data-theme="day"] .chip b{color:#151EC5;}
+  html[data-theme="day"] .chip.miss{border-color:rgba(214,0,33,.55);color:#c2304a;}
+  html[data-theme="day"] .readout{border-color:rgba(21,30,197,.2);color:#2c3560;}
+  html[data-theme="day"] .readout b{color:#1c2250;}
+  html[data-theme="day"] .readout .verdict{color:#c2304a;}
+  html[data-theme="day"] .readout .bless{color:#8a4d00;
+    background:linear-gradient(90deg,rgba(214,0,33,.10),rgba(21,30,197,.10));
+    border-color:rgba(21,30,197,.3);}
+  html[data-theme="day"] .back{color:#2c3560;border-color:rgba(21,30,197,.35);}
+  html[data-theme="day"] .back:hover{color:#fff;background:#151EC5;border-color:#151EC5;}
+  html[data-theme="day"] footer{color:#8b93b8;}
+  html[data-theme="day"] .warn{background:rgba(21,30,197,.14);}
+  html[data-theme="day"] .warnBox{background:linear-gradient(160deg,rgba(21,30,197,.14),rgba(255,255,255,.96));
+    border-color:rgba(21,30,197,.25);box-shadow:0 0 60px -12px rgba(21,30,197,.5),0 0 40px -14px rgba(214,0,33,.25);}
+  html[data-theme="day"] .warnTitle{color:#1c2250;text-shadow:none;}
+  html[data-theme="day"] .warnText{color:#2c3560;}
+  html[data-theme="day"] .warnText b{color:#c2304a;}
+
+  /* ===== 古诗滚动背景 ===== */
+  .poem-rain{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;}
+  .poem-line{position:absolute;top:0;left:0;user-select:none;will-change:transform;
+    writing-mode:vertical-rl;text-orientation:upright;
+    font-family:'KaiTi','STKaiti','Kaiti SC','楷体','KaiTi_GB2312',serif;
+    color:#fff;text-shadow:0 0 8px rgba(255,255,255,.4),0 1px 5px rgba(0,0,0,.9);
+    opacity:0;animation:fall linear infinite;}
+  .pl-far{--po:.48;font-size:16px;filter:blur(1px);animation-duration:48s;}
+  .pl-mid{--po:.70;font-size:23px;filter:blur(.5px);animation-duration:31s;}
+  .pl-near{--po:.92;font-size:31px;animation-duration:20s;}
+  html[data-theme="night"] #fx{display:none;}
+  @keyframes fall{
+    0%{transform:translateY(-12vh);opacity:0;}
+    7%{opacity:var(--po,1);}
+    93%{opacity:var(--po,1);}
+    100%{transform:translateY(112vh);opacity:0;}
+  }
+  html[data-theme="day"] .poem-line{color:#0b1030;text-shadow:0 1px 3px rgba(255,255,255,.7);}
+  @media (prefers-reduced-motion:reduce){.poem-line{animation:none;opacity:0;}}
+  @media (max-width:560px){.pl-near{font-size:22px;}.pl-mid{font-size:17px;}.pl-far{font-size:12px;}}
 </style>
 </head>
 <body>
+<script>
+  (function(){var r=document.documentElement;function a(){var h=new Date().getHours();return (h>=22||h<4)?'night':'day';}var s=null;try{s=localStorage.getItem('lcxwsTheme');}catch(e){}r.setAttribute('data-theme',s||a());})();
+</script>
 
 <canvas id="fx"></canvas>
+<div class="poem-rain" id="poemRain"></div>
 <div class="veil"></div>
+<script src="poems.js"></script>
+<script>
+  (function(){
+    var box=document.getElementById('poemRain');
+    if(!box||!window.POEMS)return;
+    var layers=[
+      {cls:'pl-far',n:14,lo:38,hi:54},
+      {cls:'pl-mid',n:9,lo:25,hi:36},
+      {cls:'pl-near',n:5,lo:16,hi:24}
+    ];
+    for(var i=0;i<layers.length;i++){
+      var L=layers[i];
+      for(var k=0;k<L.n;k++){
+        var s=document.createElement('div');
+        s.className='poem-line '+L.cls;
+        s.textContent=window.POEMS[Math.floor(Math.random()*window.POEMS.length)];
+        s.style.left=(Math.random()*92)+'%';
+        s.style.animationDuration=(L.lo+Math.random()*(L.hi-L.lo)).toFixed(1)+'s';
+        s.style.animationDelay=(-Math.random()*70).toFixed(1)+'s';
+        box.appendChild(s);
+      }
+    }
+  })();
+</script>
 
 <div class="warn" id="warnModal">
   <div class="warnBox">
@@ -145,6 +248,7 @@
 <div class="top">
   <a class="home" href="../index.html">◂ 返回主页</a>
   <span class="site">LCXWS · 娱乐工具</span>
+  <button class="theme-toggle" id="themeToggle" title="切换日间/夜间模式" aria-label="切换主题">🌙</button>
 </div>
 
 <main>
@@ -709,15 +813,17 @@ function burst(){
 }
 
 function draw(t){
+  if(document.documentElement.getAttribute('data-theme')!=='day'){requestAnimationFrame(draw);return;}
   density+=(targetDensity-density)*0.04;
   while(partsArr.length<Math.round(density))partsArr.push(makeParticle(false));
   if(partsArr.length>Math.round(density)+10)partsArr.splice(Math.round(density)+10);
 
   ctx.globalCompositeOperation='source-over';
-  ctx.fillStyle='rgba(0,0,0,0.22)';
+  var light=document.documentElement.getAttribute('data-theme')==='day';
+  ctx.fillStyle=light?'rgba(255,255,255,0.45)':'rgba(0,0,0,0.22)';
   ctx.fillRect(0,0,W,H);
   ctx.globalCompositeOperation='lighter';
-  ctx.shadowBlur=18;
+  ctx.shadowBlur=light?10:18;
   var len=partsArr.length;
   for(var i=0;i<len;i++){
     var p=partsArr[i];
@@ -727,8 +833,8 @@ function draw(t){
     if(p.x<-20)p.x=W+20;if(p.x>W+20)p.x=-20;
     if(p.y<-20)p.y=H+20;if(p.y>H+20)p.y=-20;
     var lite=(p.dense?1:0.45)*(Math.sin(t/900+p.phase)*0.4+0.6);
-    ctx.shadowColor='hsla('+p.hue+',100%,62%,1)';
-    ctx.fillStyle='hsla('+p.hue+',100%,'+(58+Math.random()*10)+'%,'+(0.35+0.55*lite)+')';
+    ctx.shadowColor=light?'hsla('+p.hue+',90%,40%,1)':'hsla('+p.hue+',100%,62%,1)';
+    ctx.fillStyle=light?'hsla('+p.hue+',85%,'+(42+Math.random()*12)+'%,'+(0.55+0.4*lite)+')':'hsla('+p.hue+',100%,'+(58+Math.random()*10)+'%,'+(0.35+0.55*lite)+')';
     var s=p.size*(p.dense?1.35:1);
     if(p.streak){
       ctx.fillRect(p.x,p.y,s*5,s);
@@ -744,6 +850,20 @@ function draw(t){
 }
 requestAnimationFrame(draw);
 setInterval(function(){if(calcMode)burst();},140);
+</script>
+<script>
+  (function(){
+    var r=document.documentElement;
+    var btn=document.getElementById('themeToggle');
+    function icon(){var t=r.getAttribute('data-theme');if(btn)btn.textContent=(t==='night'?'🌙':'☀️');}
+    icon();
+    if(btn)btn.addEventListener('click',function(){
+      var t=r.getAttribute('data-theme')==='night'?'day':'night';
+      r.setAttribute('data-theme',t);
+      try{localStorage.setItem('lcxwsTheme',t);}catch(e){}
+      icon();
+    });
+  })();
 </script>
 </body>
 </html>

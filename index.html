@@ -83,9 +83,53 @@
 
   @media (prefers-reduced-motion:reduce){.glow,.beam{animation:none!important;}}
   @media (max-width:560px){.wrap{padding-top:64px;}h1{font-size:40px;}}
+
+  /* ===== 主题切换 ===== */
+  .theme-toggle{position:fixed;top:18px;right:18px;z-index:60;cursor:pointer;
+    width:44px;height:44px;border-radius:50%;border:1px solid rgba(255,255,255,.35);
+    background:rgba(10,12,26,.55);backdrop-filter:blur(8px);font-size:20px;line-height:1;
+    display:flex;align-items:center;justify-content:center;transition:.25s;}
+  .theme-toggle:hover{transform:scale(1.1);box-shadow:0 0 18px rgba(21,30,197,.7);}
+
+  html[data-theme="day"] body{background:#eef1fb;color:#232a50;}
+  html[data-theme="day"] .grid-lines{opacity:.5;
+    background:
+      linear-gradient(rgba(21,30,197,.06) 1px,transparent 1px),
+      linear-gradient(90deg,rgba(21,30,197,.06) 1px,transparent 1px);
+    background-size:46px 46px;}
+  html[data-theme="day"] .glow.blue{opacity:.16;}
+  html[data-theme="day"] .glow.red{opacity:.14;}
+  html[data-theme="day"] .glow.white{opacity:.06;background:#8ea0ff;}
+  html[data-theme="day"] .beam{opacity:.2;}
+  html[data-theme="day"] h1{
+    background:linear-gradient(90deg,#20264a 0%,#3a44ff 32%,#4a5278 52%,#ff5a72 78%,#20264a 100%);
+    -webkit-background-clip:text;background-clip:text;
+    filter:drop-shadow(0 0 10px rgba(21,30,197,.25)) drop-shadow(0 0 18px rgba(214,0,33,.18));}
+  html[data-theme="day"] .tagline{color:#4a5278;}
+  html[data-theme="day"] .avatar{border-color:#20264a;
+    box-shadow:0 0 22px rgba(21,30,197,.35),0 0 40px rgba(214,0,33,.18);}
+  html[data-theme="day"] .divider{background:linear-gradient(90deg,transparent,#151EC5,#4a5278,#D60021,transparent);}
+  html[data-theme="day"] .card{
+    background:linear-gradient(160deg,rgba(21,30,197,.10),rgba(255,255,255,.92) 62%);
+    border-color:rgba(21,30,197,.18);box-shadow:0 12px 30px -18px rgba(21,30,197,.35);}
+  html[data-theme="day"] .card:hover{border-color:rgba(21,30,197,.5);
+    box-shadow:0 20px 44px -16px rgba(21,30,197,.45),0 0 22px rgba(214,0,33,.18);}
+  html[data-theme="day"] .card h3{color:#1c2250;}
+  html[data-theme="day"] .card p{color:#4a5278;}
+  html[data-theme="day"] .card .go{border-color:rgba(21,30,197,.45);}
+  html[data-theme="day"] .card:hover .go{background:#151EC5;color:#fff;}
+  html[data-theme="day"] .card .corner{border-color:#1c2250;box-shadow:0 0 14px rgba(21,30,197,.4);}
+  html[data-theme="day"] .card .shine{background:radial-gradient(circle,rgba(21,30,197,.22),transparent 70%);}
+  html[data-theme="day"] footer{color:#8b93b8;}
+  html[data-theme="day"] .theme-toggle{border-color:rgba(21,30,197,.4);background:rgba(255,255,255,.7);}
 </style>
 </head>
 <body>
+<script>
+  (function(){var r=document.documentElement;function a(){var h=new Date().getHours();return (h>=22||h<4)?'night':'day';}var s=null;try{s=localStorage.getItem('lcxwsTheme');}catch(e){}r.setAttribute('data-theme',s||a());})();
+</script>
+
+<button class="theme-toggle" id="themeToggle" title="切换日间/夜间模式" aria-label="切换主题">🌙</button>
 
 <div class="fx" aria-hidden="true">
   <div class="grid-lines"></div>
@@ -128,5 +172,22 @@
 </div>
 
 <footer>LCXWS · 2026</footer>
+<script>
+  (function(){
+    var root=document.documentElement;
+    function auto(){var h=new Date().getHours();return (h>=22||h<4)?'night':'day';}
+    function apply(t){root.setAttribute('data-theme',t);
+      var b=document.getElementById('themeToggle');if(b)b.textContent=(t==='night'?'🌙':'☀️');}
+    var saved=null;try{saved=localStorage.getItem('lcxwsTheme');}catch(e){}
+    var theme=saved||auto();
+    apply(theme);
+    var btn=document.getElementById('themeToggle');
+    if(btn)btn.addEventListener('click',function(){
+      theme=(theme==='night')?'day':'night';
+      apply(theme);
+      try{localStorage.setItem('lcxwsTheme',theme);}catch(e){}
+    });
+  })();
+</script>
 </body>
 </html>
