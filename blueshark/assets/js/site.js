@@ -12,7 +12,8 @@
   var REDUCED = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   var draggedCard = null;   /* 拖拽中的卡片（供探照灯跟随） */
 
-  /* PerfMonitor 接口配置（可配置）
+  /* PerfMonitor 接口配置（按 API 文档）
+     默认地址：http://127.0.0.1:25566（仅本机绑定）
      固定地址优先级：URL ?api=...  >  window.PERFMON_API（在 site.js 之前设置）
      未固定地址时自动检测：记住的地址 > 127.0.0.1 > 10.6.22.1 > 扫描 192.168.1.1~254
      端口：URL ?port=... 或 window.PERFMON_PORT 或默认 25566 */
@@ -337,7 +338,8 @@
   /* ============================================================
      实时数据引擎（状态页 + 主页共用）
      - 自动检测：记住的地址 > 127.0.0.1 > 10.6.22.1 > 扫描 192.168.1.1~254
-     - 1 秒轮询（有防重入保护），数据更顺滑
+     - 按 API 文档默认 127.0.0.1:25566，数据每 5s 取一次
+     - 无法连接时关闭接口显示（整块隐藏），连接成功后自动恢复
      - 手动键入 IP / 端口模块（状态页）
      ============================================================ */
   var LIVE_RENDER = null;    /* 页面渲染回调：LIVE_RENDER(数据)；null 表示回退 */
@@ -404,9 +406,10 @@
     });
   }
 
-  /* 快速候选：记住的地址 + 本机 */
+  /* 候选地址：固定地址(URL/变量) > 记住的地址 > 本机默认（按 API 文档 127.0.0.1:端口） */
   function fastCandidates(){
     var list = [];
+    if (PINNED) list.push(PINNED);
     var s = savedApi();
     if (s) list.push(s);
     list.push('http://127.0.0.1:' + PERFMON_PORT);
@@ -506,8 +509,11 @@
           scannedOnce = true;
           scanLan().then(function(f2){
             if (f2){ setActive(f2); tick(); }
+            else if (LIVE_RENDER) LIVE_RENDER(null);   /* 无法连接：关闭接口显示 */
           });
+          return;
         }
+        if (LIVE_RENDER) LIVE_RENDER(null);   /* 无法连接：关闭接口显示 */
       });
     }
   }
@@ -517,16 +523,16 @@
     var box = document.getElementById('live-box');
     if (!box) return;                       /* 仅状态页存在该区块 */
     var msg = document.getElementById('live-msg');
+    var sec = document.getElementById('live');   /* 整个实时监控区 */
 
     LIVE_RENDER = function(d){
       if (!d){
+        /* 无法连接：关闭接口显示，整块隐藏 */
+        if (sec) sec.style.display = 'none';
         box.style.display = 'none';
-        if (msg){
-          msg.style.display = '';
-          msg.textContent = '未检测到 PerfMonitor 接口，当前展示为示意数据。';
-        }
         return;
       }
+      if (sec) sec.style.display = '';
       box.style.display = '';
       if (msg) msg.style.display = 'none';
 

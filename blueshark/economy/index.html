@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>经济系统 · Blue Shark</title>
-<meta name="description" content="Blue Shark 的动态经济系统：跟服务器买与卖、动态价格、/pay 玩家间转账，以及预留 API 的未来独立市场插件。">
+<meta name="description" content="Blue Shark 的经济系统：跟服务器买卖的动态价格商店、/pay 玩家间转账，以及由 ShopPlugin 驱动的自由市场货架。">
 <link rel="icon" type="image/jpeg" href="../images/server-icon.jpg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -33,7 +33,7 @@
     <a href="#intro">经济简介</a>
     <a href="#shop">动态商店</a>
     <a href="#transfer">玩家转账</a>
-    <a href="#future">未来市场</a>
+    <a href="#market">自由市场</a>
   </div>
 </div>
 
@@ -67,7 +67,7 @@
       <div class="panel mini-card reveal">
         <div class="ic">🔁</div>
         <h3>玩家间怎么交易</h3>
-        <p>玩家与玩家之间靠 <b class="emph-cyan">/pay</b> 转账货币，间接完成交易——互通有无，简单直接。</p>
+        <p>玩家之间可以<b class="emph-cyan">/pay</b> 转账结清，也可以把东西挂上<b class="emph">自由市场货架</b>卖——互通有无，简单直接。</p>
       </div>
       <div class="panel mini-card dashed reveal" data-delay="1">
         <div class="ic">🤝</div>
@@ -112,7 +112,7 @@
       <p>用 /pay 完成玩家与玩家之间的交易</p>
     </div>
     <div class="panel center-box pad-lg text-center reveal">
-      <p style="color:var(--muted);font-size:15px;margin-bottom:22px;">你和朋友谈好一件物品的价格，通过转账结清——服务器没有复杂的一口价市场，交易靠人，也靠默契。</p>
+      <p style="color:var(--muted);font-size:15px;margin-bottom:22px;">朋友间谈好价格，用 /pay 转账结清；想摆摊卖东西，就挂到自由市场的货架上——由人，也由市场。</p>
       <div class="flow">
         <span class="node">卖家 发货</span>
         <span class="arr">→</span>
@@ -126,29 +126,70 @@
   </div>
 </section>
 
-<!-- 未来市场 -->
-<section id="future" class="sec-deep">
+<!-- 自由市场 -->
+<section id="market" class="sec-deep">
   <div class="wrap">
     <div class="sec-head reveal">
-      <span class="eyebrow">FUTURE</span>
-      <h2>未来的独立市场</h2>
-      <p>预留的 API，正在酝酿的下一步</p>
+      <span class="eyebrow">MARKET</span>
+      <h2>自由市场 · 货架</h2>
+      <p>玩家自己摆摊，把东西挂上货架卖——由 ShopPlugin 货架插件驱动</p>
     </div>
+
     <div class="panel center-box pad-lg reveal">
       <div style="text-align:center;margin-bottom:18px;">
-        <div style="font-size:36px;">🧪</div>
-        <h3 style="color:var(--foam);font-weight:900;font-size:20px;margin-top:10px;">通过 API 做独立市场插件</h3>
-        <span class="soon">尚未开工 · 敬请期待</span>
+        <div style="font-size:36px;">🏪</div>
+        <h3 style="color:var(--foam);font-weight:900;font-size:20px;margin-top:10px;">上架一件商品</h3>
       </div>
-      <p style="color:var(--muted);font-size:14.5px;text-align:center;">
-        现有的经济插件开放了 <b class="emph">API 接口</b>，未来可以基于它单独做一个
-        <b class="emph-soft">独立的市场插件</b>——让玩家间交易拥有自己的界面与规则，
-        比如挂单买卖、市场行情一览。这是一个还在规划里的想法，等船长有空了就会开工。
-      </p>
-      <p class="text-center" style="margin-top:20px;">
-        相关页面：<a class="link" href="../leaderboard/index.html">排行榜</a> · <a class="link" href="../guide/index.html">玩法指南</a>
+      <div class="flow">
+        <span class="node">/store 打开货架</span>
+        <span class="arr">→</span>
+        <span class="node">放入物品</span>
+        <span class="arr">→</span>
+        <span class="node">告示牌定价</span>
+        <span class="arr">→</span>
+        <span class="node">确认上架</span>
+      </div>
+      <p class="text-center" style="color:var(--muted);font-size:14px;margin-top:16px;">
+        上架后物品从背包扣除，其他玩家就能在<b class="emph">自由市场</b>里看到并买走。
       </p>
     </div>
+
+    <div class="grid g-3" style="margin-top:22px;">
+      <div class="panel mini-card center reveal">
+        <div class="ic">🛒</div>
+        <h3>自由市场 /buy</h3>
+        <p>分页浏览所有在售商品，点开看卖家、单价、数量、总价、税费和你的余额，确认后一键买下。</p>
+      </div>
+      <div class="panel mini-card center reveal" data-delay="1">
+        <div class="ic">📦</div>
+        <h3>我的商品</h3>
+        <p>货架界面左上角的箱子按钮进入"我的商品"，查看自己的在售列表，一键下架并退回物品。</p>
+      </div>
+      <div class="panel mini-card center reveal" data-delay="2">
+        <div class="ic">🧾</div>
+        <h3>市场税收</h3>
+        <p>买家附加税、卖家抽成、固定税可独立配置，税款由系统回收——经济稳定，不凭空生钱。</p>
+      </div>
+      <div class="panel mini-card center reveal">
+        <div class="ic">🔒</div>
+        <h3>交易安全</h3>
+        <p>购买采用原子抢占，同一商品不可能被两人同时买到；完整 NBT 存储，附魔与 Mod 物品流通不丢失。</p>
+      </div>
+      <div class="panel mini-card center reveal" data-delay="1">
+        <div class="ic">🔌</div>
+        <h3>对接经济</h3>
+        <p>软依赖 EconomyPlugin，支持离线收款、余额查询、货币格式化，卖家在线会收到到账提示。</p>
+      </div>
+      <div class="panel mini-card center reveal" data-delay="2">
+        <div class="ic">⚙️</div>
+        <h3>配置热重载</h3>
+        <p>/store reload 即可重载配置与商品数据（需 shop.admin 权限），不影响在售商品。</p>
+      </div>
+    </div>
+
+    <p class="reveal foot-note">
+      相关页面：<a class="link" href="../leaderboard/index.html">排行榜</a> · <a class="link" href="../guide/index.html">玩法指南</a>
+    </p>
   </div>
 </section>
 
