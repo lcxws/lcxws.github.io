@@ -1,193 +1,481 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>LCXWS · 个人主页</title>
-<meta name="description" content="LCXWS 的个人主页——我的小世界。Blue Shark 服务器介绍等模块入口。">
-<style>
-  :root{--blue:#151EC5;--red:#D60021;--white:#fff;}
-  *{margin:0;padding:0;box-sizing:border-box;}
-  html,body{height:100%;}
-  body{
-    background:#000;
-    color:#e8e8f0;
-    font-family:'Segoe UI','Noto Sans SC','Microsoft YaHei',system-ui,sans-serif;
-    overflow-x:hidden;
-    min-height:100vh;
-  }
-  a{color:inherit;text-decoration:none;}
-  [id]{scroll-margin-top:20px;}
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LCXWS · 个人主页</title>
+  <meta name="description" content="LCXWS 的个人主页——我的小世界。Blue Shark 服务器介绍等模块入口。">
+  <style>
+    :root {
+      --blue: #151EC5;
+      --red: #D60021;
+      --white: #fff;
+    }
 
-  /* ===== 背景光效：蓝 / 红 / 白 扫光 ===== */
-  .fx{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;}
-  .grid-lines{position:absolute;inset:0;opacity:.55;
-    background:
-      linear-gradient(rgba(255,255,255,.045) 1px,transparent 1px),
-      linear-gradient(90deg,rgba(255,255,255,.045) 1px,transparent 1px);
-    background-size:46px 46px;
-    -webkit-mask-image:radial-gradient(circle at 50% 40%,#000 0%,transparent 78%);
-            mask-image:radial-gradient(circle at 50% 40%,#000 0%,transparent 78%);}
-  .glow{position:absolute;border-radius:50%;filter:blur(90px);opacity:.4;animation:pulse 7s ease-in-out infinite;}
-  .glow.blue{width:440px;height:440px;background:var(--blue);top:-90px;left:-90px;}
-  .glow.red{width:500px;height:500px;background:var(--red);bottom:-140px;right:-110px;animation-delay:-3.5s;}
-  .glow.white{width:300px;height:300px;background:#fff;top:38%;left:50%;transform:translate(-50%,-50%);opacity:.1;}
-  @keyframes pulse{0%,100%{opacity:.28;transform:scale(1);}50%{opacity:.5;transform:scale(1.16);}}
-  .beam{position:absolute;top:-25%;height:150%;width:230px;filter:blur(72px);opacity:.55;mix-blend-mode:screen;will-change:transform;}
-  .beam.blue{background:linear-gradient(180deg,transparent,var(--blue) 50%,transparent);}
-  .beam.red{background:linear-gradient(180deg,transparent,var(--red) 50%,transparent);}
-  .beam.white{background:linear-gradient(180deg,transparent,rgba(255,255,255,.9) 50%,transparent);}
-  .beam.a{animation:sweepA 11s linear infinite;}
-  .beam.b{animation:sweepB 16s linear infinite;animation-delay:-6s;}
-  .beam.c{animation:sweepC 9s linear infinite;animation-delay:-3s;}
-  @keyframes sweepA{0%{left:-22%;transform:rotate(18deg) scaleX(.85);}100%{left:112%;transform:rotate(18deg) scaleX(.85);}}
-  @keyframes sweepB{0%{left:112%;transform:rotate(-22deg) scaleX(.6);}100%{left:-22%;transform:rotate(-22deg) scaleX(.6);}}
-  @keyframes sweepC{0%{left:-22%;transform:rotate(42deg) scaleX(.5);}100%{left:112%;transform:rotate(42deg) scaleX(.5);}}
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
 
-  /* ===== 内容 ===== */
-  .wrap{position:relative;z-index:2;max-width:1020px;margin:0 auto;padding:84px 24px 40px;}
-  .avatar{width:128px;height:128px;border-radius:50%;object-fit:cover;display:block;margin:0 auto 24px;
-    border:3px solid var(--white);
-    box-shadow:0 0 26px rgba(21,30,197,.75),0 0 56px rgba(214,0,33,.4);}
-  h1{
-    font-size:clamp(42px,8vw,80px);font-weight:900;text-align:center;letter-spacing:.08em;
-    background:linear-gradient(90deg,#fff 0%,#aab0ff 32%,#fff 52%,#ffb9c4 78%,#fff 100%);
-    -webkit-background-clip:text;background-clip:text;color:transparent;
-    filter:drop-shadow(0 0 16px rgba(21,30,197,.95)) drop-shadow(0 0 34px rgba(214,0,33,.55));}
-  .tagline{text-align:center;color:#9aa0c8;margin-top:14px;font-size:16px;letter-spacing:.28em;text-transform:uppercase;}
-  .divider{width:220px;height:2px;margin:38px auto;border-radius:2px;
-    background:linear-gradient(90deg,transparent,var(--blue),var(--white),var(--red),transparent);}
+    html, body {
+      height: 100%;
+    }
 
-  /* ===== 模块卡 ===== */
-  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:22px;}
-  .card{position:relative;display:block;color:inherit;border:1px solid rgba(255,255,255,.14);overflow:hidden;
-    background:linear-gradient(160deg,rgba(21,30,197,.16),rgba(0,0,0,.55) 62%);
-    border-radius:18px;padding:22px 20px 20px;backdrop-filter:blur(6px);
-    transition:transform .25s,border-color .25s,box-shadow .25s;}
-  .card:hover{transform:translateY(-6px);border-color:rgba(255,255,255,.4);
-    box-shadow:0 20px 44px -18px rgba(21,30,197,.75),0 0 28px rgba(214,0,33,.35);}
-  .card .corner{position:absolute;top:14px;left:14px;width:46px;height:46px;border-radius:10px;
-    display:flex;align-items:center;justify-content:center;font-size:30px;line-height:1;
-    background:rgba(0,0,0,.45);border:2px solid rgba(255,255,255,.8);box-shadow:0 0 16px rgba(21,30,197,.85);}
-  .card .go{position:absolute;top:16px;right:16px;font-size:12px;font-weight:900;color:#fff;letter-spacing:.1em;
-    border:1px solid rgba(255,255,255,.35);padding:5px 9px;border-radius:6px;transition:.2s;}
-  .card:hover .go{background:var(--white);color:#000;}
-  .card h3{margin:66px 0 8px;font-size:20px;font-weight:900;color:#fff;letter-spacing:.03em;}
-  .card p{font-size:13.5px;color:#aab0d0;line-height:1.75;}
-  .card .shine{position:absolute;inset:auto -30% -42% auto;width:72%;height:125%;border-radius:50%;
-    background:radial-gradient(circle,rgba(21,30,197,.4),transparent 70%);transition:.3s;}
-  .card:hover .shine{transform:scale(1.18);}
-  .card.soon{opacity:.55;pointer-events:none;}
+    body {
+      background: #000;
+      color: #e8e8f0;
+      font-family: 'Segoe UI', 'Noto Sans SC', 'Microsoft YaHei', system-ui, sans-serif;
+      overflow-x: hidden;
+      min-height: 100vh;
+    }
 
-  footer{position:relative;z-index:2;text-align:center;color:#565c86;font-size:12.5px;padding:12px 0 44px;letter-spacing:.18em;}
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
 
-  @media (prefers-reduced-motion:reduce){.glow,.beam{animation:none!important;}}
-  @media (max-width:560px){.wrap{padding-top:64px;}h1{font-size:40px;}}
+    [id] {
+      scroll-margin-top: 20px;
+    }
 
-  /* ===== 主题切换 ===== */
-  .theme-toggle{position:fixed;top:18px;right:18px;z-index:60;cursor:pointer;
-    width:44px;height:44px;border-radius:50%;border:1px solid rgba(255,255,255,.35);
-    background:rgba(10,12,26,.55);backdrop-filter:blur(8px);font-size:20px;line-height:1;
-    display:flex;align-items:center;justify-content:center;transition:.25s;}
-  .theme-toggle:hover{transform:scale(1.1);box-shadow:0 0 18px rgba(21,30,197,.7);}
+    /* ===== 背景光效：蓝 / 红 / 白 扫光 ===== */
+    .fx {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      overflow: hidden;
+    }
 
-  html[data-theme="day"] body{background:#eef1fb;color:#232a50;}
-  html[data-theme="day"] .grid-lines{opacity:.5;
-    background:
-      linear-gradient(rgba(21,30,197,.06) 1px,transparent 1px),
-      linear-gradient(90deg,rgba(21,30,197,.06) 1px,transparent 1px);
-    background-size:46px 46px;}
-  html[data-theme="day"] .glow.blue{opacity:.16;}
-  html[data-theme="day"] .glow.red{opacity:.14;}
-  html[data-theme="day"] .glow.white{opacity:.06;background:#8ea0ff;}
-  html[data-theme="day"] .beam{opacity:.2;}
-  html[data-theme="day"] h1{
-    background:linear-gradient(90deg,#20264a 0%,#3a44ff 32%,#4a5278 52%,#ff5a72 78%,#20264a 100%);
-    -webkit-background-clip:text;background-clip:text;
-    filter:drop-shadow(0 0 10px rgba(21,30,197,.25)) drop-shadow(0 0 18px rgba(214,0,33,.18));}
-  html[data-theme="day"] .tagline{color:#4a5278;}
-  html[data-theme="day"] .avatar{border-color:#20264a;
-    box-shadow:0 0 22px rgba(21,30,197,.35),0 0 40px rgba(214,0,33,.18);}
-  html[data-theme="day"] .divider{background:linear-gradient(90deg,transparent,#151EC5,#4a5278,#D60021,transparent);}
-  html[data-theme="day"] .card{
-    background:linear-gradient(160deg,rgba(21,30,197,.10),rgba(255,255,255,.92) 62%);
-    border-color:rgba(21,30,197,.18);box-shadow:0 12px 30px -18px rgba(21,30,197,.35);}
-  html[data-theme="day"] .card:hover{border-color:rgba(21,30,197,.5);
-    box-shadow:0 20px 44px -16px rgba(21,30,197,.45),0 0 22px rgba(214,0,33,.18);}
-  html[data-theme="day"] .card h3{color:#1c2250;}
-  html[data-theme="day"] .card p{color:#4a5278;}
-  html[data-theme="day"] .card .go{border-color:rgba(21,30,197,.45);}
-  html[data-theme="day"] .card:hover .go{background:#151EC5;color:#fff;}
-  html[data-theme="day"] .card .corner{border-color:#1c2250;box-shadow:0 0 14px rgba(21,30,197,.4);}
-  html[data-theme="day"] .card .shine{background:radial-gradient(circle,rgba(21,30,197,.22),transparent 70%);}
-  html[data-theme="day"] footer{color:#8b93b8;}
-  html[data-theme="day"] .theme-toggle{border-color:rgba(21,30,197,.4);background:rgba(255,255,255,.7);}
-</style>
+    .grid-lines {
+      position: absolute;
+      inset: 0;
+      opacity: .55;
+      background:
+        linear-gradient(rgba(255,255,255,.045) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.045) 1px, transparent 1px);
+      background-size: 46px 46px;
+      -webkit-mask-image: radial-gradient(circle at 50% 40%, #000 0%, transparent 78%);
+              mask-image: radial-gradient(circle at 50% 40%, #000 0%, transparent 78%);
+    }
+
+    .glow {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(90px);
+      opacity: .4;
+      animation: pulse 7s ease-in-out infinite;
+    }
+
+    .glow.blue {
+      width: 440px;
+      height: 440px;
+      background: var(--blue);
+      top: -90px;
+      left: -90px;
+    }
+
+    .glow.red {
+      width: 500px;
+      height: 500px;
+      background: var(--red);
+      bottom: -140px;
+      right: -110px;
+      animation-delay: -3.5s;
+    }
+
+    .glow.white {
+      width: 300px;
+      height: 300px;
+      background: #fff;
+      top: 38%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      opacity: .1;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: .28; transform: scale(1); }
+      50% { opacity: .5; transform: scale(1.16); }
+    }
+
+    .beam {
+      position: absolute;
+      top: -25%;
+      height: 150%;
+      width: 230px;
+      filter: blur(72px);
+      opacity: .55;
+      mix-blend-mode: screen;
+      will-change: transform;
+    }
+
+    .beam.blue { background: linear-gradient(180deg, transparent, var(--blue) 50%, transparent); }
+    .beam.red { background: linear-gradient(180deg, transparent, var(--red) 50%, transparent); }
+    .beam.white { background: linear-gradient(180deg, transparent, rgba(255,255,255,.9) 50%, transparent); }
+    .beam.a { animation: sweepA 11s linear infinite; }
+    .beam.b { animation: sweepB 16s linear infinite; animation-delay: -6s; }
+    .beam.c { animation: sweepC 9s linear infinite; animation-delay: -3s; }
+
+    @keyframes sweepA {
+      0% { left: -22%; transform: rotate(18deg) scaleX(.85); }
+      100% { left: 112%; transform: rotate(18deg) scaleX(.85); }
+    }
+
+    @keyframes sweepB {
+      0% { left: 112%; transform: rotate(-22deg) scaleX(.6); }
+      100% { left: -22%; transform: rotate(-22deg) scaleX(.6); }
+    }
+
+    @keyframes sweepC {
+      0% { left: -22%; transform: rotate(42deg) scaleX(.5); }
+      100% { left: 112%; transform: rotate(42deg) scaleX(.5); }
+    }
+
+    /* ===== 内容 ===== */
+    .wrap {
+      position: relative;
+      z-index: 2;
+      max-width: 1020px;
+      margin: 0 auto;
+      padding: 84px 24px 40px;
+    }
+
+    .avatar {
+      width: 128px;
+      height: 128px;
+      border-radius: 50%;
+      object-fit: cover;
+      display: block;
+      margin: 0 auto 24px;
+      border: 3px solid var(--white);
+      box-shadow: 0 0 26px rgba(21,30,197,.75), 0 0 56px rgba(214,0,33,.4);
+    }
+
+    h1 {
+      font-size: clamp(42px, 8vw, 80px);
+      font-weight: 900;
+      text-align: center;
+      letter-spacing: .08em;
+      background: linear-gradient(90deg, #fff 0%, #aab0ff 32%, #fff 52%, #ffb9c4 78%, #fff 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      filter: drop-shadow(0 0 16px rgba(21,30,197,.95)) drop-shadow(0 0 34px rgba(214,0,33,.55));
+    }
+
+    .tagline {
+      text-align: center;
+      color: #9aa0c8;
+      margin-top: 14px;
+      font-size: 16px;
+      letter-spacing: .28em;
+      text-transform: uppercase;
+    }
+
+    .divider {
+      width: 220px;
+      height: 2px;
+      margin: 38px auto;
+      border-radius: 2px;
+      background: linear-gradient(90deg, transparent, var(--blue), var(--white), var(--red), transparent);
+    }
+
+    /* ===== 模块卡 ===== */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 22px;
+    }
+
+    .card {
+      position: relative;
+      display: block;
+      color: inherit;
+      border: 1px solid rgba(255,255,255,.14);
+      overflow: hidden;
+      background: linear-gradient(160deg, rgba(21,30,197,.16), rgba(0,0,0,.55) 62%);
+      border-radius: 18px;
+      padding: 22px 20px 20px;
+      backdrop-filter: blur(6px);
+      transition: transform .25s, border-color .25s, box-shadow .25s;
+    }
+
+    .card:hover {
+      transform: translateY(-6px);
+      border-color: rgba(255,255,255,.4);
+      box-shadow: 0 20px 44px -18px rgba(21,30,197,.75), 0 0 28px rgba(214,0,33,.35);
+    }
+
+    .card .corner {
+      position: absolute;
+      top: 14px;
+      left: 14px;
+      width: 46px;
+      height: 46px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 30px;
+      line-height: 1;
+      background: rgba(0,0,0,.45);
+      border: 2px solid rgba(255,255,255,.8);
+      box-shadow: 0 0 16px rgba(21,30,197,.85);
+    }
+
+    .card .go {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      font-size: 12px;
+      font-weight: 900;
+      color: #fff;
+      letter-spacing: .1em;
+      border: 1px solid rgba(255,255,255,.35);
+      padding: 5px 9px;
+      border-radius: 6px;
+      transition: .2s;
+    }
+
+    .card:hover .go {
+      background: var(--white);
+      color: #000;
+    }
+
+    .card h3 {
+      margin: 66px 0 8px;
+      font-size: 20px;
+      font-weight: 900;
+      color: #fff;
+      letter-spacing: .03em;
+    }
+
+    .card p {
+      font-size: 13.5px;
+      color: #aab0d0;
+      line-height: 1.75;
+    }
+
+    .card .shine {
+      position: absolute;
+      inset: auto -30% -42% auto;
+      width: 72%;
+      height: 125%;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(21,30,197,.4), transparent 70%);
+      transition: .3s;
+    }
+
+    .card:hover .shine {
+      transform: scale(1.18);
+    }
+
+    .card.soon {
+      opacity: .55;
+      pointer-events: none;
+    }
+
+    footer {
+      position: relative;
+      z-index: 2;
+      text-align: center;
+      color: #565c86;
+      font-size: 12.5px;
+      padding: 12px 0 44px;
+      letter-spacing: .18em;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .glow, .beam {
+        animation: none !important;
+      }
+    }
+
+    @media (max-width: 560px) {
+      .wrap { padding-top: 64px; }
+      h1 { font-size: 40px; }
+    }
+
+    /* ===== 主题切换 ===== */
+    .theme-toggle {
+      position: fixed;
+      top: 18px;
+      right: 18px;
+      z-index: 60;
+      cursor: pointer;
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      border: 1px solid rgba(255,255,255,.35);
+      background: rgba(10,12,26,.55);
+      backdrop-filter: blur(8px);
+      font-size: 20px;
+      line-height: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: .25s;
+    }
+
+    .theme-toggle:hover {
+      transform: scale(1.1);
+      box-shadow: 0 0 18px rgba(21,30,197,.7);
+    }
+
+    html[data-theme="day"] body {
+      background: #eef1fb;
+      color: #232a50;
+    }
+
+    html[data-theme="day"] .grid-lines {
+      opacity: .5;
+      background:
+        linear-gradient(rgba(21,30,197,.06) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(21,30,197,.06) 1px, transparent 1px);
+      background-size: 46px 46px;
+    }
+
+    html[data-theme="day"] .glow.blue { opacity: .16; }
+    html[data-theme="day"] .glow.red { opacity: .14; }
+    html[data-theme="day"] .glow.white { opacity: .06; background: #8ea0ff; }
+    html[data-theme="day"] .beam { opacity: .2; }
+
+    html[data-theme="day"] h1 {
+      background: linear-gradient(90deg, #20264a 0%, #3a44ff 32%, #4a5278 52%, #ff5a72 78%, #20264a 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      filter: drop-shadow(0 0 10px rgba(21,30,197,.25)) drop-shadow(0 0 18px rgba(214,0,33,.18));
+    }
+
+    html[data-theme="day"] .tagline { color: #4a5278; }
+
+    html[data-theme="day"] .avatar {
+      border-color: #20264a;
+      box-shadow: 0 0 22px rgba(21,30,197,.35), 0 0 40px rgba(214,0,33,.18);
+    }
+
+    html[data-theme="day"] .divider {
+      background: linear-gradient(90deg, transparent, #151EC5, #4a5278, #D60021, transparent);
+    }
+
+    html[data-theme="day"] .card {
+      background: linear-gradient(160deg, rgba(21,30,197,.10), rgba(255,255,255,.92) 62%);
+      border-color: rgba(21,30,197,.18);
+      box-shadow: 0 12px 30px -18px rgba(21,30,197,.35);
+    }
+
+    html[data-theme="day"] .card:hover {
+      border-color: rgba(21,30,197,.5);
+      box-shadow: 0 20px 44px -16px rgba(21,30,197,.45), 0 0 22px rgba(214,0,33,.18);
+    }
+
+    html[data-theme="day"] .card h3 { color: #1c2250; }
+    html[data-theme="day"] .card p { color: #4a5278; }
+    html[data-theme="day"] .card .go { border-color: rgba(21,30,197,.45); }
+    html[data-theme="day"] .card:hover .go { background: #151EC5; color: #fff; }
+    html[data-theme="day"] .card .corner { border-color: #1c2250; box-shadow: 0 0 14px rgba(21,30,197,.4); }
+    html[data-theme="day"] .card .shine { background: radial-gradient(circle, rgba(21,30,197,.22), transparent 70%); }
+    html[data-theme="day"] footer { color: #8b93b8; }
+    html[data-theme="day"] .theme-toggle { border-color: rgba(21,30,197,.4); background: rgba(255,255,255,.7); }
+  </style>
 </head>
 <body>
-<script>
-  (function(){var r=document.documentElement;function a(){var h=new Date().getHours();return (h>=22||h<4)?'night':'day';}var s=null;try{s=localStorage.getItem('lcxwsTheme');}catch(e){}r.setAttribute('data-theme',s||a());})();
-</script>
+  <script>
+    (function () {
+      var r = document.documentElement;
 
-<button class="theme-toggle" id="themeToggle" title="切换日间/夜间模式" aria-label="切换主题">🌙</button>
+      function a() {
+        var h = new Date().getHours();
+        return (h >= 22 || h < 4) ? 'night' : 'day';
+      }
 
-<div class="fx" aria-hidden="true">
-  <div class="grid-lines"></div>
-  <div class="glow blue"></div>
-  <div class="glow red"></div>
-  <div class="glow white"></div>
-  <div class="beam blue a"></div>
-  <div class="beam red b"></div>
-  <div class="beam white c"></div>
-</div>
+      var s = null;
+      try {
+        s = localStorage.getItem('lcxwsTheme');
+      } catch (e) {}
+      r.setAttribute('data-theme', s || a());
+    })();
+  </script>
 
-<div class="wrap">
-  <img class="avatar" src="avatar.jpg" alt="LCXWS 头像">
-  <h1>LCXWS</h1>
-  <p class="tagline">Coding · Minecraft · 我的小世界</p>
-  <div class="divider"></div>
+  <button class="theme-toggle" id="themeToggle" title="切换日间/夜间模式" aria-label="切换主题">🌙</button>
 
-  <div class="grid">
-    <a class="card" href="blueshark/index.html">
-      <span class="go">OPEN ▸</span>
-      <img class="corner" src="blueshark/images/server-icon.jpg" alt="Blue Shark">
-      <div class="shine"></div>
-      <h3>Blue Shark 服务器</h3>
-      <p>一条开了两年的熟人轻模组生存小服。点击进入完整的 Blue Shark 介绍站——地图、成员、经济、模组、状态实时监控。</p>
-    </a>
-    <a class="card" href="renpin/index.html">
-      <span class="go">OPEN ▸</span>
-      <span class="corner">🍀</span>
-      <div class="shine"></div>
-      <h3>人品算法生成器</h3>
-      <p>输入生日与姓名，自动生成你的四柱八字与人品值，附送五行开运吉祥话。100% 胡编乱造，仅供娱乐。</p>
-    </a>
-    <a class="card soon" href="#">
-      <span class="go">SOON</span>
-      <div class="shine"></div>
-      <h3>更多模块</h3>
-      <p>正在酝酿中，敬请期待。</p>
-    </a>
+  <div class="fx" aria-hidden="true">
+    <div class="grid-lines"></div>
+    <div class="glow blue"></div>
+    <div class="glow red"></div>
+    <div class="glow white"></div>
+    <div class="beam blue a"></div>
+    <div class="beam red b"></div>
+    <div class="beam white c"></div>
   </div>
-</div>
 
-<footer>LCXWS · 2026</footer>
-<script>
-  (function(){
-    var root=document.documentElement;
-    function auto(){var h=new Date().getHours();return (h>=22||h<4)?'night':'day';}
-    function apply(t){root.setAttribute('data-theme',t);
-      var b=document.getElementById('themeToggle');if(b)b.textContent=(t==='night'?'🌙':'☀️');}
-    var saved=null;try{saved=localStorage.getItem('lcxwsTheme');}catch(e){}
-    var theme=saved||auto();
-    apply(theme);
-    var btn=document.getElementById('themeToggle');
-    if(btn)btn.addEventListener('click',function(){
-      theme=(theme==='night')?'day':'night';
+  <div class="wrap">
+    <img class="avatar" src="avatar.jpg" alt="LCXWS 头像">
+    <h1>LCXWS</h1>
+    <p class="tagline">Coding · Minecraft · 我的小世界</p>
+    <div class="divider"></div>
+
+    <div class="grid">
+      <a class="card" href="blueshark/index.html">
+        <span class="go">OPEN ▸</span>
+        <img class="corner" src="blueshark/images/server-icon.jpg" alt="Blue Shark">
+        <div class="shine"></div>
+        <h3>Blue Shark 服务器</h3>
+        <p>一条开了两年的熟人轻模组生存小服。点击进入完整的 Blue Shark 介绍站——地图、成员、经济、模组、状态实时监控。</p>
+      </a>
+
+      <a class="card" href="renpin/index.html">
+        <span class="go">OPEN ▸</span>
+        <span class="corner">🍀</span>
+        <div class="shine"></div>
+        <h3>人品算法生成器</h3>
+        <p>输入生日与姓名，自动生成你的四柱八字与人品值，附送五行开运吉祥话。100% 胡编乱造，仅供娱乐。</p>
+      </a>
+
+      <a class="card soon" href="#">
+        <span class="go">SOON</span>
+        <div class="shine"></div>
+        <h3>更多模块</h3>
+        <p>正在酝酿中，敬请期待。</p>
+      </a>
+    </div>
+  </div>
+
+  <footer>LCXWS · 2026</footer>
+
+  <script>
+    (function () {
+      var root = document.documentElement;
+
+      function auto() {
+        var h = new Date().getHours();
+        return (h >= 22 || h < 4) ? 'night' : 'day';
+      }
+
+      function apply(t) {
+        root.setAttribute('data-theme', t);
+        var b = document.getElementById('themeToggle');
+        if (b) b.textContent = (t === 'night' ? '🌙' : '☀️');
+      }
+
+      var saved = null;
+      try {
+        saved = localStorage.getItem('lcxwsTheme');
+      } catch (e) {}
+      var theme = saved || auto();
       apply(theme);
-      try{localStorage.setItem('lcxwsTheme',theme);}catch(e){}
-    });
-  })();
-</script>
+
+      var btn = document.getElementById('themeToggle');
+      if (btn) btn.addEventListener('click', function () {
+        theme = (theme === 'night') ? 'day' : 'night';
+        apply(theme);
+        try {
+          localStorage.setItem('lcxwsTheme', theme);
+        } catch (e) {}
+      });
+    })();
+  </script>
 </body>
 </html>
