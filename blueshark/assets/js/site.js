@@ -10,6 +10,67 @@
   'use strict';
 
   var REDUCED = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* ===== 低压力模式（性能模式）控制器 =====
+     手机/触屏自动开启；连续约 2 秒帧率低于 30 FPS 自动开启；
+     三档切换 自动/开启/关闭，与全站共用 localStorage 键 lcxwsLowPower；
+     自动向导航栏注入开关按钮（无导航页仅设标志与 .lp class）。 */
+  var LP_KEY='lcxwsLowPower',LP_MODES=['auto','on','off'];
+  var LP_SAVED=null;try{LP_SAVED=localStorage.getItem(LP_KEY);}catch(e){}
+  var LP_MODE=LP_MODES.indexOf(LP_SAVED)>=0?LP_SAVED:'auto';
+  var LP_COARSE=window.matchMedia&&matchMedia('(pointer:coarse)').matches||matchMedia('(hover:none)').matches||false;
+  var LP_AUTO=LP_COARSE;
+  var LP_RAF=null;
+  function LPEffective(){return LP_MODE==='on'||(LP_MODE==='auto'&&LP_AUTO);}
+  function LPRender(){
+    var on=LPEffective();
+    window.__LOWPOWER=on;
+    document.documentElement.classList.toggle('lp',on);
+    var btn=document.getElementById('lpBtn');
+    if(btn){
+      btn.classList.toggle('on',on);
+      btn.classList.toggle('off',LP_MODE==='off');
+      btn.textContent=LP_MODE==='auto'
+        ?(on?'⚡ 低压力·运行中':'⚡ 低压力·自动')
+        :(LP_MODE==='on'?'⚡ 低压力·开启':'⚡ 低压力·关闭');
+    }
+  }
+  function LPSetMode(m){
+    LP_MODE=m;try{localStorage.setItem(LP_KEY,m);}catch(e){}
+    LPRender();LPSync();
+  }
+  function LPStopMonitor(){if(LP_RAF){cancelAnimationFrame(LP_RAF);LP_RAF=null;}}
+  function LPStartMonitor(){
+    if(LP_RAF||LP_MODE!=='auto'||LPEffective())return;
+    var frames=0,last=performance.now(),low=0;
+    LP_RAF=requestAnimationFrame(function tick(t){
+      if(!document.hidden&&LP_MODE==='auto'&&!LPEffective()){
+        frames++;
+        if(t-last>=1000){
+          var fps=Math.round(frames*1000/(t-last));
+          frames=0;last=t;
+          if(fps<30){low++;if(low>=2){LP_AUTO=true;LP_RAF=null;LPRender();return;}}
+          else low=0;
+        }
+      }else{frames=0;last=t;}
+      LP_RAF=requestAnimationFrame(tick);
+    });
+  }
+  function LPSync(){if(LP_MODE==='auto'&&!LPEffective())LPStartMonitor();else LPStopMonitor();}
+  (function injectBtn(){
+    var nav=document.querySelector('.site-nav .nav-inner')||document.querySelector('.site-nav');
+    if(!nav)return;
+    var btn=document.createElement('button');
+    btn.id='lpBtn';btn.type='button';btn.className='lp-btn';
+    btn.title='低压力模式：手机/触屏或帧率低于 30 FPS 时自动开启（冻结深海粒子、关闭探照灯与动画）；点按切换 自动/开启/关闭';
+    btn.addEventListener('click',function(){
+      LPSetMode(LP_MODES[(LP_MODES.indexOf(LP_MODE)+1)%LP_MODES.length]);
+    });
+    nav.appendChild(btn);
+  })();
+  LPRender();LPSync();
+  window.__lpState=function(){return{mode:LP_MODE,on:LPEffective(),autoOn:LP_AUTO,coarse:LP_COARSE};};
+
   var draggedCard = null;   /* 拖拽中的卡片（供探照灯跟随） */
 
   /* PerfMonitor 接口配置（按 API 文档）
@@ -211,6 +272,7 @@
     }
 
     function tick(){
+      if(window.__LOWPOWER){requestAnimationFrame(tick);return;}   /* 低压力：冻结粒子绘制，保留末帧 */
       t += 0.016;
       scroll += (targetScroll - scroll) * 0.08;
       ctx.clearRect(0, 0, W, H);
@@ -308,6 +370,7 @@
     }, {passive:true});
 
     function frame(){
+      if(window.__LOWPOWER){requestAnimationFrame(frame);return;}   /* 低压力：探照灯停止跟随 */
       /* 缓动追光标，产生拖尾 */
       var dx = tx - cx, dy = ty - cy;
       if (Math.abs(dx) > 0.4 || Math.abs(dy) > 0.4){
@@ -663,6 +726,7 @@
       glow.setAttribute('aria-hidden','true');
       p.appendChild(glow);
       p.addEventListener('pointermove', function(e){
+        if(window.__LOWPOWER)return;
         var r = p.getBoundingClientRect();
         p.style.setProperty('--mx', (((e.clientX - r.left) / r.width) * 100).toFixed(1) + '%');
         p.style.setProperty('--my', (((e.clientY - r.top) / r.height) * 100).toFixed(1) + '%');
@@ -676,6 +740,7 @@
     document.querySelectorAll(TILT_SEL).forEach(function(card){
       card.classList.add('tiltable');
       card.addEventListener('pointermove', function(e){
+        if(window.__LOWPOWER)return;
         var r = card.getBoundingClientRect();
         var px = (e.clientX - r.left) / r.width - 0.5;
         var py = (e.clientY - r.top) / r.height - 0.5;
@@ -693,6 +758,7 @@
   if (!REDUCED) {
     document.querySelectorAll('.btn').forEach(function(btn){
       btn.addEventListener('pointermove', function(e){
+        if(window.__LOWPOWER)return;
         var r = btn.getBoundingClientRect();
         var dx = e.clientX - (r.left + r.width / 2);
         var dy = e.clientY - (r.top + r.height / 2);
