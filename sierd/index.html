@@ -324,6 +324,20 @@
     .hot-row{grid-template-columns:22px 40px 1fr 62px;font-size:12.5px;}
     .hot-row .active{display:none;}
   }
+
+  /* ===== 低压力模式（性能降载）：静态化背景光晕、去除背景模糊、停全局动画 ===== */
+  .lp-btn{font-family:inherit;font-size:12px;font-weight:800;color:var(--muted);padding:7px 13px;border-radius:999px;
+    border:1px solid var(--line);background:rgba(255,255,255,.03);cursor:pointer;white-space:nowrap;transition:.2s;
+    user-select:none;-webkit-user-select:none;}
+  .lp-btn:hover{color:var(--gold);border-color:var(--line2);}
+  .lp-btn.on{color:#1a0b00;background:linear-gradient(120deg,#ffd54f,#ff9f1c);border-color:transparent;
+    box-shadow:0 6px 18px -8px rgba(255,170,40,.6);}
+  .lp-btn.off{opacity:.5;}
+  .lp .glow{animation:none!important;opacity:.4!important;}
+  .lp .topbar,.lp .panel,.lp .wiz-card,.lp .modal{backdrop-filter:none!important;-webkit-backdrop-filter:none!important;}
+  .lp *{animation:none!important;transition:none!important;}
+  @media (max-width:640px){.lp-btn{font-size:11px;padding:6px 10px;}}
+
 </style>
 </head>
 <body>
@@ -343,6 +357,8 @@
   </a>
   <div class="top-right">
     <span class="chip" id="seedChip" style="display:none"></span>
+    <button class="lp-btn" id="lpBtn" type="button"
+      title="低压力模式：检测到手机/触屏或帧率低于 30 FPS 时自动静态化背景光晕并去除背景模糊；点按切换 自动/开启/关闭">⚡ 低压力·自动</button>
     <button class="ghost" id="btnHelp">❓ 机制说明</button>
     <button class="ghost" onclick="location.href='../index.html'">⌂ 返回首页</button>
   </div>
@@ -1314,5 +1330,65 @@
   renderAll();
 })();
 </script>
+
+<script>
+  /* ===== 低压力模式（性能模式）控制器 =====
+     手机/触屏自动开启；连续约 2 秒帧率低于 30 FPS 自动开启；
+     三档切换 自动/开启/关闭，与全站共用 localStorage 键 lcxwsLowPower。 */
+  (function(){
+    'use strict';
+    var KEY='lcxwsLowPower',MODES=['auto','on','off'];
+    var saved=null;try{saved=localStorage.getItem(KEY);}catch(e){}
+    var mode=MODES.indexOf(saved)>=0?saved:'auto';
+    var coarse=matchMedia('(pointer:coarse)').matches||matchMedia('(hover:none)').matches;
+    var autoOn=coarse;
+    var rafId=null;
+    function effective(){return mode==='on'||(mode==='auto'&&autoOn);}
+    function render(){
+      var on=effective();
+      window.__LOWPOWER=on;
+      document.documentElement.classList.toggle('lp',on);
+      var btn=document.getElementById('lpBtn');
+      if(btn){
+        btn.classList.toggle('on',on);
+        btn.classList.toggle('off',mode==='off');
+        btn.classList.toggle('auto',mode==='auto');
+        btn.textContent=mode==='auto'
+          ?(on?'⚡ 低压力·运行中':'⚡ 低压力·自动')
+          :(mode==='on'?'⚡ 低压力·开启':'⚡ 低压力·关闭');
+      }
+    }
+    function setMode(m){
+      mode=m;
+      try{localStorage.setItem(KEY,m);}catch(e){}
+      render();sync();
+    }
+    function startMonitor(){
+      if(rafId||mode!=='auto'||effective())return;
+      var frames=0,last=performance.now(),low=0;
+      (function tick(t){
+        if(!document.hidden&&mode==='auto'&&!effective()){
+          frames++;
+          if(t-last>=1000){
+            var fps=Math.round(frames*1000/(t-last));
+            frames=0;last=t;
+            if(fps<30){low++;if(low>=2){autoOn=true;rafId=null;render();return;}}
+            else low=0;
+          }
+        }else{frames=0;last=t;}
+        rafId=requestAnimationFrame(tick);
+      })(performance.now());
+    }
+    function stopMonitor(){if(rafId){cancelAnimationFrame(rafId);rafId=null;}}
+    function sync(){if(mode==='auto'&&!effective())startMonitor();else stopMonitor();}
+    var btn=document.getElementById('lpBtn');
+    if(btn)btn.addEventListener('click',function(){
+      setMode(MODES[(MODES.indexOf(mode)+1)%MODES.length]);
+    });
+    render();sync();
+    window.__lpState=function(){return{mode:mode,on:effective(),autoOn:autoOn,coarse:coarse};};
+  })();
+</script>
+
 </body>
 </html>

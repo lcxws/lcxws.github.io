@@ -442,6 +442,27 @@
 
   /* 星座结果页隐藏顶部导航和页脚 */
   html[data-ui="star"] body.starResult .top,html[data-ui="star"] body.starResult footer{display:none;}
+
+  /* ===== 低压力模式（性能降载） =====
+     纯增量：不影响 data-theme（夜/日）与 data-ui（水墨/星空）双风格切换；
+     关闭诗词雨动画层、隐藏水墨/星海特效画布、去 panel 背景模糊、停全局动画 */
+  .top-right{display:flex;align-items:center;gap:10px;}
+  .lp-btn{font-family:inherit;font-size:12px;font-weight:700;letter-spacing:.06em;
+    color:inherit;opacity:.8;padding:8px 13px;border-radius:999px;background:transparent;
+    border:1px dashed currentColor;cursor:pointer;white-space:nowrap;transition:.2s;
+    user-select:none;-webkit-user-select:none;}
+  .lp-btn:hover{opacity:1;border-style:solid;}
+  .lp-btn.on{opacity:1;border-style:solid;color:#e07a6a;box-shadow:0 0 10px rgba(224,122,106,.35);}
+  .lp-btn.off{opacity:.45;}
+  .lp .poem-line{display:none!important;}
+  .lp #inkFx,.lp #starFx{display:none!important;}
+  .lp .panel{backdrop-filter:none;-webkit-backdrop-filter:none;}
+  .lp *{animation:none!important;transition:none!important;}
+  @media (max-width:640px){
+    .lp-btn{font-size:11px;padding:7px 10px;}
+    .site{display:none;}
+  }
+
 </style>
 </head>
 <body>
@@ -489,7 +510,11 @@
 <div class="top">
   <a class="home" href="../index.html">◂ 返回主页</a>
   <span class="site">LCXWS · 娱乐工具</span>
-  <button class="theme-toggle" id="themeToggle" title="切换日间/夜间模式" aria-label="切换主题">🌙</button>
+  <div class="top-right">
+    <button class="lp-btn" id="lpBtn" type="button"
+      title="低压力模式：检测到手机/触屏或帧率低于 30 FPS 时自动关闭水墨/星空特效与诗词雨动画；点按切换 自动/开启/关闭；不影响双风格与日夜切换">⚡ 低压力·自动</button>
+    <button class="theme-toggle" id="themeToggle" title="切换日间/夜间模式" aria-label="切换主题">🌙</button>
+  </div>
 </div>
 
 <main>
@@ -1166,6 +1191,7 @@ function inkStreak(x,y,nx,ny,o){
     len:o.len||26,life:0,max:o.max||44,a:o.a||0.09,ph:Math.random()*Math.PI*2,w:o.w||1.6});
 }
 function inkTick(){
+  if(window.__LOWPOWER){requestAnimationFrame(inkTick);return;}
   var ui=document.documentElement.getAttribute('data-ui');
   if(ui==='star'&&!wash.on){
     if(inkParts.length)inkParts.length=0;
@@ -1265,6 +1291,7 @@ function inkTick(){
 requestAnimationFrame(inkTick);
 var lastMX=-999,lastMY=-999;
 window.addEventListener('mousemove',function(e){
+  if(window.__LOWPOWER)return;
   if(document.documentElement.getAttribute('data-ui')==='star')return;
   var dx=e.clientX-lastMX,dy=e.clientY-lastMY;
   var dist=Math.sqrt(dx*dx+dy*dy);
@@ -1285,6 +1312,7 @@ window.addEventListener('mousemove',function(e){
   lastMX=e.clientX;lastMY=e.clientY;
 });
 window.addEventListener('click',function(e){
+  if(window.__LOWPOWER)return;
   if(document.documentElement.getAttribute('data-ui')==='star')return;
   for(var i=0;i<10;i++){
     var ang=Math.random()*Math.PI*2,sp=Math.random()*1.5+0.3;
@@ -1294,6 +1322,7 @@ window.addEventListener('click',function(e){
   inkRing(e.clientX,e.clientY,{r:2,grow:0.55,max:70,a:0.07,w:1});
 });
 window.addEventListener('touchmove',function(e){
+  if(window.__LOWPOWER)return;
   if(document.documentElement.getAttribute('data-ui')==='star')return;
   var t=e.touches[0];
   for(var i=0;i<2;i++){
@@ -1304,6 +1333,7 @@ window.addEventListener('touchmove',function(e){
   inkRing(t.clientX,t.clientY,{r:3,grow:0.5,max:50,a:0.07,w:1});
 },{passive:true});
 window.addEventListener('touchstart',function(e){
+  if(window.__LOWPOWER)return;
   if(document.documentElement.getAttribute('data-ui')==='star')return;
   var t=e.touches[0];
   for(var i=0;i<8;i++){var ang=Math.random()*Math.PI*2,sp=Math.random()*1.3;inkBlob(t.clientX,t.clientY,{vx:Math.cos(ang)*sp,vy:Math.sin(ang)*sp,r:7,grow:0.26,max:72,a:0.26});}
@@ -1336,6 +1366,7 @@ function starResize(){
 }
 addEventListener('resize',starResize);starResize();
 function starTick(t){
+  if(window.__LOWPOWER){requestAnimationFrame(starTick);return;}
   var ui=document.documentElement.getAttribute('data-ui');
   if(ui!=='star'){requestAnimationFrame(starTick);return;}
   starFrame++;
@@ -1409,5 +1440,66 @@ requestAnimationFrame(starTick);
     });
   })();
 </script>
+
+<script>
+  /* ===== 低压力模式（性能模式）控制器 =====
+     手机/触屏自动开启；连续约 2 秒帧率低于 30 FPS 自动开启；
+     三档切换 自动/开启/关闭，与全站共用 localStorage 键 lcxwsLowPower；
+     仅增删 <html> 的 .lp class 与 __LOWPOWER 标志，不影响 data-theme / data-ui。 */
+  (function(){
+    'use strict';
+    var KEY='lcxwsLowPower',MODES=['auto','on','off'];
+    var saved=null;try{saved=localStorage.getItem(KEY);}catch(e){}
+    var mode=MODES.indexOf(saved)>=0?saved:'auto';
+    var coarse=matchMedia('(pointer:coarse)').matches||matchMedia('(hover:none)').matches;
+    var autoOn=coarse;             // 手机/触屏 → 自动开
+    var rafId=null;
+    function effective(){return mode==='on'||(mode==='auto'&&autoOn);}
+    function render(){
+      var on=effective();
+      window.__LOWPOWER=on;
+      document.documentElement.classList.toggle('lp',on);
+      var btn=document.getElementById('lpBtn');
+      if(btn){
+        btn.classList.toggle('on',on);
+        btn.classList.toggle('off',mode==='off');
+        btn.classList.toggle('auto',mode==='auto');
+        btn.textContent=mode==='auto'
+          ?(on?'⚡ 低压力·运行中':'⚡ 低压力·自动')
+          :(mode==='on'?'⚡ 低压力·开启':'⚡ 低压力·关闭');
+      }
+    }
+    function setMode(m){
+      mode=m;
+      try{localStorage.setItem(KEY,m);}catch(e){}
+      render();sync();
+    }
+    function startMonitor(){
+      if(rafId||mode!=='auto'||effective())return;
+      var frames=0,last=performance.now(),low=0;
+      (function tick(t){
+        if(!document.hidden&&mode==='auto'&&!effective()){
+          frames++;
+          if(t-last>=1000){
+            var fps=Math.round(frames*1000/(t-last));
+            frames=0;last=t;
+            if(fps<30){low++;if(low>=2){autoOn=true;rafId=null;render();return;}}
+            else low=0;
+          }
+        }else{frames=0;last=t;}
+        rafId=requestAnimationFrame(tick);
+      })(performance.now());
+    }
+    function stopMonitor(){if(rafId){cancelAnimationFrame(rafId);rafId=null;}}
+    function sync(){if(mode==='auto'&&!effective())startMonitor();else stopMonitor();}
+    var btn=document.getElementById('lpBtn');
+    if(btn)btn.addEventListener('click',function(){
+      setMode(MODES[(MODES.indexOf(mode)+1)%MODES.length]);
+    });
+    render();sync();
+    window.__lpState=function(){return{mode:mode,on:effective(),autoOn:autoOn,coarse:coarse};};
+  })();
+</script>
+
 </body>
 </html>
