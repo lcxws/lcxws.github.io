@@ -54,12 +54,6 @@
       radial-gradient(50% 40% at 88% 22%,rgba(52,74,190,.45),transparent 70%),
       radial-gradient(46% 36% at 70% 70%,rgba(40,58,160,.4),transparent 72%);}
 
-  .cursor-glow{position:absolute;width:580px;height:580px;margin:-290px 0 0 -290px;border-radius:50%;
-    background:radial-gradient(closest-side,rgba(122,148,255,.32),rgba(122,148,255,0));
-    filter:blur(42px);will-change:left,top;}
-  html[data-theme="night"] .cursor-glow{
-    background:radial-gradient(closest-side,rgba(88,114,255,.24),rgba(88,114,255,0));}
-
   .topbar{position:fixed;top:0;left:0;right:0;z-index:50;height:66px;
     display:flex;align-items:center;justify-content:space-between;padding:0 clamp(18px,4vw,44px);
     background:rgba(244,247,253,.62);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
@@ -404,19 +398,16 @@
     var calm=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
     if(!fine||calm)return;
 
-    var tx=innerWidth*.62,ty=innerHeight*.38,cx=tx,cy=ty,gx=tx,gy=ty;
+    var tx=innerWidth*.62,ty=innerHeight*.38,cx=tx,cy=ty;
     var fx=document.querySelector('.fx');
-    var glow=document.createElement('div');glow.className='cursor-glow';fx.appendChild(glow);
     var layers=[['.grid-lines',8]]
       .map(function(p){return[document.querySelector(p[0]),p[1]];});
     addEventListener('pointermove',function(e){tx=e.clientX;ty=e.clientY;},{passive:true});
 
     (function loop(){
       cx+=(tx-cx)*.055;cy+=(ty-cy)*.055;
-      gx+=(tx-gx)*.12; gy+=(ty-gy)*.12;
       var nx=cx/innerWidth-.5,ny=cy/innerHeight-.5;
       layers.forEach(function(l){if(l[0])l[0].style.translate=(nx*l[1]).toFixed(2)+'px '+(ny*l[1]).toFixed(2)+'px';});
-      glow.style.left=gx.toFixed(1)+'px';glow.style.top=gy.toFixed(1)+'px';
       requestAnimationFrame(loop);
     })();
 
