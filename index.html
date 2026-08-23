@@ -125,14 +125,14 @@
 
   .tilt{will-change:transform;transform-style:preserve-3d;transition:transform .5s cubic-bezier(.2,.7,.3,1);}
   .feature{position:relative;display:flex;flex-direction:column;justify-content:flex-end;overflow:hidden;
-    min-height:520px;border-radius:26px;padding:40px 38px;color:#fff;
-    background:linear-gradient(150deg,#3D53E8 0%,#2E3FCB 45%,#20309F 100%);
-    box-shadow:0 30px 60px -22px rgba(37,55,180,.55);
+    min-height:520px;border-radius:26px;padding:40px 38px;color:#eaf6ff;
+    background:linear-gradient(155deg,#021830 0%,#024666 48%,#00b8d4 100%);
+    box-shadow:0 30px 60px -22px rgba(0,184,212,.45),inset 0 1px 0 rgba(0,212,255,.18);
     transition:box-shadow .35s;}
-  .feature:hover{box-shadow:0 40px 74px -24px rgba(37,55,180,.62);}
+  .feature:hover{box-shadow:0 40px 74px -24px rgba(0,212,255,.55),0 0 0 1px rgba(0,212,255,.25) inset;}
 .feature .silk-canvas{position:absolute;inset:0;width:100%;height:100%;display:block;}
   .feature::after{content:"";position:absolute;inset:0;pointer-events:none;z-index:1;
-    background:linear-gradient(180deg,rgba(8,12,48,0) 42%,rgba(6,9,40,.5) 100%);}
+    background:linear-gradient(180deg,rgba(2,10,24,0) 38%,rgba(2,10,24,.55) 100%);}
   .feature .icon{translate:calc(var(--gx,0)*10px) calc(var(--gy,0)*8px);}
   .feature .inner{position:relative;z-index:2;translate:calc(var(--gx,0)*-9px) calc(var(--gy,0)*-7px);}
   .feature .icon{width:56px;height:56px;border-radius:14px;object-fit:cover;margin-bottom:auto;
@@ -329,8 +329,8 @@
 
  var _mx=0,_my=0,_tx=0,_ty=0;
  var pal={
-   day:{bg:[[.88,.92,.98],[.62,.72,.94],[1,1,1]],card:[[.05,.08,.32],[.22,.31,.78],[.6,.72,1]]},
-   night:{bg:[[.03,.05,.12],[.12,.18,.5],[.38,.48,.92]],card:[[.04,.06,.22],[.14,.22,.58],[.42,.52,1]]}
+   day:{bg:[[.88,.92,.98],[.62,.72,.94],[1,1,1]],card:[[0,.06,.18],[0,.36,.6],[.25,.86,1]]},
+   night:{bg:[[.03,.05,.12],[.08,.18,.42],[.28,.48,.82]],card:[[0,.03,.1],[0,.18,.36],[.18,.58,.9]]}
  };
  function apply(){
    var t=(document.documentElement.dataset.theme==="night")?"night":"day";
