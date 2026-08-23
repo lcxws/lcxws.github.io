@@ -37,25 +37,17 @@
     background-size:52px 52px;
     -webkit-mask-image:radial-gradient(circle at 50% 32%,#000 0%,transparent 80%);
             mask-image:radial-gradient(circle at 50% 32%,#000 0%,transparent 80%);}
-  .cloud{position:absolute;border-radius:50%;filter:blur(70px);will-change:transform;}
-  .cloud.c1{width:640px;height:420px;left:-140px;top:-120px;
-    background:radial-gradient(closest-side,rgba(154,178,255,.75),rgba(154,178,255,0));
-    animation:drift1 17s ease-in-out infinite alternate;}
-  .cloud.c2{width:720px;height:480px;right:-180px;top:-60px;
-    background:radial-gradient(closest-side,rgba(196,212,255,.85),rgba(196,212,255,0));
-    animation:drift2 21s ease-in-out infinite alternate;}
-  .cloud.c3{width:560px;height:420px;left:34%;top:34%;
-    background:radial-gradient(closest-side,rgba(226,234,255,.9),rgba(226,234,255,0));
-    animation:drift3 19s ease-in-out infinite alternate;}
-  .cloud.c4{width:600px;height:380px;left:-120px;bottom:-140px;
-    background:radial-gradient(closest-side,rgba(170,192,255,.65),rgba(170,192,255,0));
-    animation:drift2 24s ease-in-out infinite alternate-reverse;}
-  .cloud.c5{width:520px;height:360px;right:-100px;bottom:-100px;
-    background:radial-gradient(closest-side,rgba(205,218,255,.7),rgba(205,218,255,0));
-    animation:drift1 23s ease-in-out infinite alternate-reverse;}
-  @keyframes drift1{from{transform:translate(0,0) scale(1);}to{transform:translate(60px,36px) scale(1.12);}}
-  @keyframes drift2{from{transform:translate(0,0) scale(1);}to{transform:translate(-70px,44px) scale(1.08);}}
-  @keyframes drift3{from{transform:translate(0,0) scale(1);}to{transform:translate(46px,-38px) scale(1.15);}}
+  .silk{position:absolute;inset:0;width:100%;height:100%;
+    filter:blur(45px);opacity:.85;will-change:transform;pointer-events:none;}
+  @keyframes silk-drift-1{from{transform:translate(0,0) scale(1);}to{transform:translate(70px,42px) scale(1.18);}}
+  @keyframes silk-drift-2{from{transform:translate(0,0) scale(1);}to{transform:translate(-90px,52px) scale(1.14);}}
+  @keyframes silk-drift-3{from{transform:translate(0,0) scale(1);}to{transform:translate(54px,-46px) scale(1.2);}}
+  @keyframes silk-drift-4{from{transform:translate(0,0) scale(1);}to{transform:translate(-64px,-32px) scale(1.16);}}
+  .silk.s1{animation:silk-drift-1 22s ease-in-out infinite alternate;}
+  .silk.s2{animation:silk-drift-2 26s ease-in-out infinite alternate;}
+  .silk.s3{animation:silk-drift-3 24s ease-in-out infinite alternate;}
+  .silk.s4{animation:silk-drift-2 28s ease-in-out infinite alternate-reverse;}
+  .silk.s5{animation:silk-drift-1 30s ease-in-out infinite alternate-reverse;}
 
   .cursor-glow{position:absolute;width:580px;height:580px;margin:-290px 0 0 -290px;border-radius:50%;
     background:radial-gradient(closest-side,rgba(122,148,255,.32),rgba(122,148,255,0));
@@ -133,21 +125,20 @@
     box-shadow:0 30px 60px -22px rgba(37,55,180,.55);
     transition:box-shadow .35s;}
   .feature:hover{box-shadow:0 40px 74px -24px rgba(37,55,180,.62);}
-  .feature .fluid{position:absolute;border-radius:50%;filter:blur(34px);pointer-events:none;}
-  .feature .f1{width:340px;height:340px;right:-110px;top:-110px;
-    background:radial-gradient(closest-side,rgba(126,152,255,.85),transparent 72%);
-    animation:flow1 11s ease-in-out infinite alternate;}
-  .feature .f2{width:300px;height:300px;left:-90px;top:32%;
-    background:radial-gradient(closest-side,rgba(88,116,255,.7),transparent 72%);
-    animation:flow2 13s ease-in-out infinite alternate;}
-  .feature .f3{width:280px;height:280px;right:-60px;bottom:-120px;
-    background:radial-gradient(closest-side,rgba(160,180,255,.5),transparent 72%);
-    animation:flow1 15s ease-in-out infinite alternate-reverse;}
-  @keyframes flow1{from{transform:translate(0,0) scale(1);}to{transform:translate(-34px,26px) scale(1.14);}}
-  @keyframes flow2{from{transform:translate(0,0) scale(1);}to{transform:translate(30px,-30px) scale(1.1);}}
-  .feature .f1{translate:calc(var(--gx,0)*26px) calc(var(--gy,0)*20px);}
-  .feature .f2{translate:calc(var(--gx,0)*-18px) calc(var(--gy,0)*-14px);}
-  .feature .f3{translate:calc(var(--gx,0)*32px) calc(var(--gy,0)*-22px);}
+  .silk-feature{position:absolute;pointer-events:none;
+    filter:blur(28px);mix-blend-mode:screen;opacity:.92;
+    will-change:transform;}
+  @keyframes silk-flow-1{from{transform:translate(0,0) scale(1);}to{transform:translate(-26px,22px) scale(1.14);}}
+  @keyframes silk-flow-2{from{transform:translate(0,0) scale(1);}to{transform:translate(30px,-18px) scale(1.1);}}
+  .silk-feature.silk-f1{top:-90px;right:-80px;width:380px;height:380px;
+    animation:silk-flow-1 13s ease-in-out infinite alternate;
+    translate:calc(var(--gx,0)*26px) calc(var(--gy,0)*20px);}
+  .silk-feature.silk-f2{top:38%;left:-110px;width:340px;height:340px;
+    animation:silk-flow-2 15s ease-in-out infinite alternate;
+    translate:calc(var(--gx,0)*-18px) calc(var(--gy,0)*-14px);}
+  .silk-feature.silk-f3{bottom:-130px;right:-50px;width:300px;height:300px;
+    animation:silk-flow-1 17s ease-in-out infinite alternate-reverse;
+    translate:calc(var(--gx,0)*32px) calc(var(--gy,0)*-22px);}
   .feature .icon{translate:calc(var(--gx,0)*10px) calc(var(--gy,0)*8px);}
   .feature .inner{position:relative;z-index:2;translate:calc(var(--gx,0)*-9px) calc(var(--gy,0)*-7px);}
   .feature .icon{width:56px;height:56px;border-radius:14px;object-fit:cover;margin-bottom:auto;
@@ -172,11 +163,7 @@
       linear-gradient(rgba(130,155,255,.07) 1px,transparent 1px),
       linear-gradient(90deg,rgba(130,155,255,.07) 1px,transparent 1px);
     background-size:52px 52px;}
-  html[data-theme="night"] .cloud.c1{background:radial-gradient(closest-side,rgba(64,88,220,.4),transparent);}
-  html[data-theme="night"] .cloud.c2{background:radial-gradient(closest-side,rgba(46,66,170,.42),transparent);}
-  html[data-theme="night"] .cloud.c3{background:radial-gradient(closest-side,rgba(30,44,120,.35),transparent);}
-  html[data-theme="night"] .cloud.c4{background:radial-gradient(closest-side,rgba(58,80,210,.34),transparent);}
-  html[data-theme="night"] .cloud.c5{background:radial-gradient(closest-side,rgba(40,58,160,.36),transparent);}
+  html[data-theme="night"] .silk{opacity:.55;}
   html[data-theme="night"] .topbar{background:rgba(9,13,34,.66);border-color:rgba(120,140,230,.12);}
   html[data-theme="night"] .brand,
   html[data-theme="night"] h1{color:#EAF0FF;}
@@ -202,7 +189,7 @@
     .ghost-btn{display:none;}
   }
   @media (prefers-reduced-motion:reduce){
-    .cloud,.feature .fluid,.notice .star{animation:none!important;}
+    .silk,.silk-feature,.notice .star{animation:none!important;}
     .rise{animation-duration:.01s!important;}
   }
 
@@ -217,13 +204,75 @@
 
 </script>
 
+<svg class="svg-defs" aria-hidden="true" style="position:absolute;width:0;height:0;overflow:hidden;">
+  <defs>
+    <filter id="silk-a" x="-30%" y="-30%" width="160%" height="160%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.009" numOctaves="2" seed="1"/>
+      <feDisplacementMap in="SourceGraphic" scale="180"/>
+    </filter>
+    <filter id="silk-b" x="-30%" y="-30%" width="160%" height="160%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.013" numOctaves="3" seed="4"/>
+      <feDisplacementMap in="SourceGraphic" scale="240"/>
+    </filter>
+    <filter id="silk-c" x="-30%" y="-30%" width="160%" height="160%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.018" numOctaves="3" seed="9"/>
+      <feDisplacementMap in="SourceGraphic" scale="320"/>
+    </filter>
+    <radialGradient id="bg-g1" cx="30%" cy="30%" r="60%">
+      <stop offset="0%" stop-color="rgba(180,200,255,0.75)"/>
+      <stop offset="55%" stop-color="rgba(180,200,255,0.22)"/>
+      <stop offset="100%" stop-color="rgba(180,200,255,0)"/>
+    </radialGradient>
+    <radialGradient id="bg-g2" cx="70%" cy="25%" r="55%">
+      <stop offset="0%" stop-color="rgba(200,220,255,0.85)"/>
+      <stop offset="60%" stop-color="rgba(200,220,255,0.2)"/>
+      <stop offset="100%" stop-color="rgba(200,220,255,0)"/>
+    </radialGradient>
+    <radialGradient id="bg-g3" cx="50%" cy="55%" r="65%">
+      <stop offset="0%" stop-color="rgba(160,190,255,0.65)"/>
+      <stop offset="100%" stop-color="rgba(160,190,255,0)"/>
+    </radialGradient>
+    <radialGradient id="bg-g4" cx="25%" cy="75%" r="55%">
+      <stop offset="0%" stop-color="rgba(210,225,255,0.7)"/>
+      <stop offset="100%" stop-color="rgba(210,225,255,0)"/>
+    </radialGradient>
+    <radialGradient id="bg-g5" cx="65%" cy="70%" r="50%">
+      <stop offset="0%" stop-color="rgba(175,205,255,0.7)"/>
+      <stop offset="100%" stop-color="rgba(175,205,255,0)"/>
+    </radialGradient>
+    <radialGradient id="feat-g1" cx="80%" cy="20%" r="70%">
+      <stop offset="0%" stop-color="rgba(170,200,255,0.95)"/>
+      <stop offset="40%" stop-color="rgba(105,140,235,0.65)"/>
+      <stop offset="100%" stop-color="rgba(40,70,180,0)"/>
+    </radialGradient>
+    <radialGradient id="feat-g2" cx="20%" cy="80%" r="60%">
+      <stop offset="0%" stop-color="rgba(140,175,255,0.85)"/>
+      <stop offset="100%" stop-color="rgba(40,70,180,0)"/>
+    </radialGradient>
+    <radialGradient id="feat-g3" cx="50%" cy="50%" r="55%">
+      <stop offset="0%" stop-color="rgba(210,225,255,0.75)"/>
+      <stop offset="100%" stop-color="rgba(40,70,180,0)"/>
+    </radialGradient>
+  </defs>
+</svg>
+
 <div class="fx" aria-hidden="true">
   <div class="grid-lines"></div>
-  <div class="cloud c1"></div>
-  <div class="cloud c2"></div>
-  <div class="cloud c3"></div>
-  <div class="cloud c4"></div>
-  <div class="cloud c5"></div>
+  <svg class="silk s1" viewBox="0 0 100 100" preserveAspectRatio="none">
+    <path d="M-10,35 C15,15 35,45 55,30 C75,15 90,40 110,5 L110,-10 L-10,-10Z" fill="url(#bg-g1)" filter="url(#silk-a)"/>
+  </svg>
+  <svg class="silk s2" viewBox="0 0 100 100" preserveAspectRatio="none">
+    <path d="M-10,55 C25,30 50,65 80,45 C95,35 105,55 110,30 L110,-10 L-10,-10Z" fill="url(#bg-g2)" filter="url(#silk-b)"/>
+  </svg>
+  <svg class="silk s3" viewBox="0 0 100 100" preserveAspectRatio="none">
+    <path d="M-10,45 C20,25 45,60 65,40 C85,20 100,55 110,35 L110,110 L-10,110Z" fill="url(#bg-g3)" filter="url(#silk-c)"/>
+  </svg>
+  <svg class="silk s4" viewBox="0 0 100 100" preserveAspectRatio="none">
+    <path d="M-10,30 C25,10 50,45 75,25 C90,15 100,35 110,15 L110,110 L-10,110Z" fill="url(#bg-g4)" filter="url(#silk-a)"/>
+  </svg>
+  <svg class="silk s5" viewBox="0 0 100 100" preserveAspectRatio="none">
+    <path d="M-10,60 C30,35 60,70 85,50 C95,42 100,60 110,45 L110,110 L-10,110Z" fill="url(#bg-g5)" filter="url(#silk-b)"/>
+  </svg>
 </div>
 
 <header class="topbar">
@@ -269,9 +318,15 @@
 
   <div class="rise d2"><div class="tilt">
   <a class="feature" href="blueshark/index.html">
-    <span class="fluid f1"></span>
-    <span class="fluid f2"></span>
-    <span class="fluid f3"></span>
+    <svg class="silk-feature silk-f1" viewBox="0 0 100 100" preserveAspectRatio="none">
+      <path d="M10,30 C30,5 70,20 88,42 C98,60 62,92 38,80 C12,68 0,52 10,30Z" fill="url(#feat-g1)" filter="url(#silk-b)"/>
+    </svg>
+    <svg class="silk-feature silk-f2" viewBox="0 0 100 100" preserveAspectRatio="none">
+      <path d="M15,42 C35,18 72,32 82,55 C92,80 50,88 28,72 C8,58 5,62 15,42Z" fill="url(#feat-g2)" filter="url(#silk-c)"/>
+    </svg>
+    <svg class="silk-feature silk-f3" viewBox="0 0 100 100" preserveAspectRatio="none">
+      <ellipse cx="50" cy="50" rx="48" ry="42" fill="url(#feat-g3)" filter="url(#silk-b)"/>
+    </svg>
     <div class="inner">
       <img class="icon" src="blueshark/images/server-icon.jpg" alt="Blue Shark">
       <h2>加入 Blue Shark<br>共赴方块星辰大海</h2>
@@ -315,8 +370,8 @@
     var tx=innerWidth*.62,ty=innerHeight*.38,cx=tx,cy=ty,gx=tx,gy=ty;
     var fx=document.querySelector('.fx');
     var glow=document.createElement('div');glow.className='cursor-glow';fx.appendChild(glow);
-    var layers=[['.grid-lines',8],['.cloud.c1',22],['.cloud.c2',-30],['.cloud.c3',16],
-                ['.cloud.c4',-22],['.cloud.c5',28]]
+    var layers=[['.grid-lines',8],['.silk.s1',22],['.silk.s2',-30],['.silk.s3',16],
+                ['.silk.s4',-22],['.silk.s5',28]]
       .map(function(p){return[document.querySelector(p[0]),p[1]];});
     addEventListener('pointermove',function(e){tx=e.clientX;ty=e.clientY;},{passive:true});
 
