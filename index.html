@@ -32,6 +32,8 @@
     background:#EDF1FA;color:var(--ink);
     overflow-x:hidden;min-height:100vh;
     transition:background .45s ease,color .45s ease;
+    touch-action:manipulation;
+    -webkit-tap-highlight-color:transparent;
   }
   a{color:inherit;text-decoration:none;}
   [id]{scroll-margin-top:90px;}
@@ -72,6 +74,12 @@
   .ghost-btn{font-size:13.5px;font-weight:600;color:var(--ink);padding:8px 16px;border-radius:999px;
     border:1px solid transparent;transition:.25s;}
   .ghost-btn:hover{color:var(--ds);}
+  .lp-btn{font-family:inherit;font-size:12px;font-weight:800;color:var(--mist);padding:8px 13px;border-radius:999px;
+    border:1px solid rgba(120,138,200,.3);background:rgba(255,255,255,.55);cursor:pointer;white-space:nowrap;
+    transition:.2s;user-select:none;-webkit-user-select:none;}
+  .lp-btn:hover{border-color:var(--ds);color:var(--ds);}
+  .lp-btn.on{background:var(--ds);color:#fff;border-color:var(--ds);box-shadow:0 3px 10px rgba(77,107,254,.4);}
+  .lp-btn.off{opacity:.55;}
 
   .seg{position:relative;display:flex;background:rgba(255,255,255,.72);
     border:1px solid rgba(120,138,200,.28);border-radius:999px;padding:3px;cursor:pointer;
@@ -104,12 +112,12 @@
   .duo .rise{box-shadow:0 18px 40px -20px rgba(7,12,34,.55);}
   .duo .tilt{height:100%;}
   .duo .glass{height:100%;}
-  .glass{position:relative;display:block;border-radius:20px;padding:24px 22px 22px;overflow:hidden;
+  .glass{position:relative;display:block;border-radius:var(--gr,20px);padding:24px 22px 22px;overflow:hidden;
     background:rgba(7,12,34,.68);
     transition:transform .28s;}
   .glass .silk-canvas{position:absolute;inset:0;width:100%;height:100%;display:block;z-index:0;pointer-events:none;
     border-radius:inherit;
-    clip-path:inset(0 round 20px);}
+    clip-path:inset(0 round var(--gr,20px));}
   .glass>*:not(.silk-canvas){position:relative;z-index:2;}
   .glass:hover{transform:translateY(-4px);}
   .glass h3{display:flex;align-items:center;gap:8px;font-size:18px;font-weight:800;color:#fff;
@@ -171,21 +179,68 @@
   html[data-theme="night"] .soon-strip{background:rgba(20,27,58,.45);border-color:rgba(112,138,255,.3);color:#9CA8D6;}
   html[data-theme="night"] .seg{background:rgba(22,29,62,.7);border-color:rgba(120,140,230,.22);}
   html[data-theme="night"] .ghost-btn{color:#C4CDF0;}
+  html[data-theme="night"] .lp-btn{background:rgba(22,29,62,.7);color:#C4CDF0;border-color:rgba(120,140,230,.22);}
+  html[data-theme="night"] .lp-btn.on{background:var(--ds);color:#fff;border-color:var(--ds);}
   html[data-theme="night"] footer{color:#5A6590;}
 
   @media (max-width:920px){
     .wrap{grid-template-columns:1fr;padding-top:104px;}
     .feature{min-height:400px;}
   }
+  @media (max-width:640px){
+    .wrap{padding-top:92px;gap:18px;}
+    .topbar{height:58px;}
+    .brand{font-size:16px;}
+    .brand img{width:30px;height:30px;}
+    .seg span{width:36px;height:28px;}
+    .seg .thumb{width:36px;height:28px;}
+    html[data-theme="night"] .seg .thumb{left:39px;}
+    .notice{flex-wrap:wrap;font-size:13px;line-height:1.7;margin-bottom:22px;max-width:100%;}
+    .tagline{font-size:12px;letter-spacing:.18em;}
+    .duo{gap:14px;margin-top:34px;}
+    .lp-btn{font-size:11px;padding:7px 10px;}
+    footer{letter-spacing:.14em;padding-bottom:32px;}
+  }
   @media (max-width:560px){
     .duo{grid-template-columns:1fr;}
-    h1{letter-spacing:.1em;}
     .ghost-btn{display:none;}
+    h1{letter-spacing:.08em;}
+  }
+  @media (max-width:480px){
+    .wrap{padding-top:84px;padding-bottom:36px;}
+    h1{font-size:clamp(34px,11vw,46px);letter-spacing:.05em;}
+    .feature{min-height:330px;padding:26px 20px;border-radius:20px;}
+    .feature h2{font-size:clamp(20px,6.4vw,26px);line-height:1.35;}
+    .feature p{margin-top:12px;font-size:13px;line-height:1.8;}
+    .feature .icon{width:48px;height:48px;border-radius:12px;margin-bottom:16px;}
+    .feature .link{margin-top:18px;font-size:13.5px;}
+    .glass{--gr:16px;padding:20px 16px 18px;}
+    .glass h3{font-size:16px;gap:7px;}
+    .glass p{font-size:12.5px;line-height:1.8;}
+    .soon-strip{font-size:11.5px;padding:10px 13px;}
+    footer{font-size:11px;}
+  }
+  @media (hover:none){
+    .glass:hover{transform:none;}
+    .feature:hover{box-shadow:0 30px 60px -22px rgba(0,184,212,.45),inset 0 1px 0 rgba(0,212,255,.18);}
+    .glass:active{transform:scale(.98);}
   }
   @media (prefers-reduced-motion:reduce){
     .silk,.silk-feature,.notice .star{animation:none!important;}
     .rise{animation-duration:.01s!important;}
   }
+
+  /* ===== 低压力模式（性能降载） =====
+     隐藏全部 WebGL 流光画布改静态渐变、去顶栏 backdrop-filter、停用动画/过渡 */
+  .lp #silk-bg{display:none!important;}
+  .lp .fallback-silk{display:block!important;}
+  .lp .silk-canvas{display:none!important;}
+  .lp .topbar{backdrop-filter:none;-webkit-backdrop-filter:none;background:rgba(244,247,253,.94);}
+  html[data-theme="night"] .lp .topbar{background:rgba(9,13,34,.97);}
+  .lp .tilt{will-change:auto;}
+  .lp *{animation:none!important;transition:none!important;}
+  .lp .rise{opacity:1;transform:none;}
+  .lp .grid-lines{transform:none!important;}
 
 </style>
 
@@ -206,6 +261,8 @@
   </a>
   <div class="top-right">
     <a class="ghost-btn" href="blueshark/index.html">Blue Shark ↗</a>
+    <button class="lp-btn" id="lpBtn" type="button"
+      title="低压力模式：检测到手机/触屏或帧率低于 30 FPS 时自动开启；点按切换 自动/开启/关闭">⚡ 低压力·自动</button>
     <div class="seg" id="themeToggle" role="button" tabindex="0" aria-label="切换日间/夜间模式" title="切换日间/夜间模式">
       <span class="thumb"></span>
       <span class="sun" aria-hidden="true">☀️</span>
@@ -410,24 +467,91 @@ var _bg=null,_cd=null,_glasses=[];
   addEventListener("resize",resizeAll);
   if(document.readyState==="complete")resizeAll();
   addEventListener("load",resizeAll);
-  if(!reduced){
-    function loop(now){
-      _mx+=(_tx-_mx)*.03;_my+=(_ty-_my)*.03;
-      if(_bg&&!document.hidden)_bg.frame(now);
-      if(_cd&&!document.hidden)_cd.frame(now);
-      for(var i=0;i<_glasses.length;i++){
-        var g=_glasses[i];
-        if(g&&!document.hidden)g.frame(now);
-      }
-      requestAnimationFrame(loop);
-    }
-    requestAnimationFrame(loop);
-  }else{
-    if(_bg)_bg.frame(performance.now());
-    if(_cd)_cd.frame(performance.now());
-    for(var i=0;i<_glasses.length;i++)_glasses[i].frame(performance.now());
+  var rafId=null;
+  function paintOnce(){
+    if(_bg&&!document.hidden)_bg.frame(performance.now());
+    if(_cd&&!document.hidden)_cd.frame(performance.now());
+    for(var i=0;i<_glasses.length;i++){var g=_glasses[i];if(g&&!document.hidden)g.frame(performance.now());}
   }
+  function startAnim(){
+    if(reduced||window.__LOWPOWER)return;
+    cancelAnimationFrame(rafId);
+    (function loop(now){
+      if(window.__LOWPOWER){rafId=null;return;}
+      if(!document.hidden){
+        _mx+=(_tx-_mx)*.03;_my+=(_ty-_my)*.03;
+        if(_bg)_bg.frame(now);
+        if(_cd)_cd.frame(now);
+        for(var i=0;i<_glasses.length;i++){var g=_glasses[i];if(g)g.frame(now);}
+      }
+      rafId=requestAnimationFrame(loop);
+    })(performance.now());
+  }
+  window.__silkCtl={start:startAnim,paintOnce:paintOnce,resizeAll:resizeAll};
+  if(!reduced){paintOnce();startAnim();}
+  else if(!window.__LOWPOWER)paintOnce();   // 触屏/降低动态：静态单帧
 })();
+</script>
+
+<script>
+  /* ===== 低压力模式（性能模式）控制器 =====
+     手机/触屏自动开启；连续约 2 秒帧率低于 30 FPS 自动开启；
+     右上角按钮三档切换：自动 → 开启 → 关闭（选择持久化到 localStorage）。 */
+  (function(){
+    'use strict';
+    var KEY='lcxwsLowPower',MODES=['auto','on','off'];
+    var saved=null;try{saved=localStorage.getItem(KEY);}catch(e){}
+    var mode=MODES.indexOf(saved)>=0?saved:'auto';
+    var coarse=matchMedia('(pointer:coarse)').matches||matchMedia('(hover:none)').matches;
+    var autoOn=coarse;             // 手机/触屏 → 自动开
+    var rafId=null;
+    function effective(){return mode==='on'||(mode==='auto'&&autoOn);}
+    function render(){
+      var on=effective();
+      window.__LOWPOWER=on;
+      document.documentElement.classList.toggle('lp',on);
+      var btn=document.getElementById('lpBtn');
+      if(btn){
+        btn.classList.toggle('on',on);
+        btn.classList.toggle('off',mode==='off');
+        btn.classList.toggle('auto',mode==='auto');
+        btn.textContent=mode==='auto'
+          ?(on?'⚡ 低压力·运行中':'⚡ 低压力·自动')
+          :(mode==='on'?'⚡ 低压力·开启':'⚡ 低压力·关闭');
+      }
+      if(on){/* 画布已由 CSS 隐藏，动画循环下一帧自停 */ }
+      else if(window.__silkCtl){window.__silkCtl.resizeAll();window.__silkCtl.start();}
+    }
+    function setMode(m){
+      mode=m;
+      try{localStorage.setItem(KEY,m);}catch(e){}
+      render();sync();
+    }
+    function startMonitor(){
+      if(rafId||mode!=='auto'||effective())return;
+      var frames=0,last=performance.now(),low=0;
+      (function tick(t){
+        if(!document.hidden&&mode==='auto'&&!effective()){
+          frames++;
+          if(t-last>=1000){
+            var fps=Math.round(frames*1000/(t-last));
+            frames=0;last=t;
+            if(fps<30){low++;if(low>=2){autoOn=true;rafId=null;render();return;}}
+            else low=0;
+          }
+        }else{frames=0;last=t;}
+        rafId=requestAnimationFrame(tick);
+      })(performance.now());
+    }
+    function stopMonitor(){if(rafId){cancelAnimationFrame(rafId);rafId=null;}}
+    function sync(){if(mode==='auto'&&!effective())startMonitor();else stopMonitor();}
+    var btn=document.getElementById('lpBtn');
+    if(btn)btn.addEventListener('click',function(){
+      setMode(MODES[(MODES.indexOf(mode)+1)%MODES.length]);
+    });
+    render();sync();
+    window.__lpState=function(){return{mode:mode,on:effective(),autoOn:autoOn,coarse:coarse};};
+  })();
 </script>
 
 <script>
@@ -464,15 +588,18 @@ var _bg=null,_cd=null,_glasses=[];
     addEventListener('pointermove',function(e){tx=e.clientX;ty=e.clientY;},{passive:true});
 
     (function loop(){
-      cx+=(tx-cx)*.055;cy+=(ty-cy)*.055;
-      var nx=cx/innerWidth-.5,ny=cy/innerHeight-.5;
-      layers.forEach(function(l){if(l[0])l[0].style.translate=(nx*l[1]).toFixed(2)+'px '+(ny*l[1]).toFixed(2)+'px';});
+      if(!window.__LOWPOWER){
+        cx+=(tx-cx)*.055;cy+=(ty-cy)*.055;
+        var nx=cx/innerWidth-.5,ny=cy/innerHeight-.5;
+        layers.forEach(function(l){if(l[0])l[0].style.translate=(nx*l[1]).toFixed(2)+'px '+(ny*l[1]).toFixed(2)+'px';});
+      }
       requestAnimationFrame(loop);
     })();
 
     document.querySelectorAll('.tilt').forEach(function(w){
       var inner=w.querySelector('.feature,.glass');
       w.addEventListener('pointermove',function(e){
+        if(window.__LOWPOWER)return;
         var r=w.getBoundingClientRect();
         var px=(e.clientX-r.left)/r.width-.5, py=(e.clientY-r.top)/r.height-.5;
         var big=!!w.querySelector('.feature');

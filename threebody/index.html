@@ -70,6 +70,12 @@
   .back-btn{font-size:13.5px;font-weight:600;color:var(--ink);padding:8px 16px;border-radius:999px;
     border:1px solid rgba(120,138,200,.28);transition:.25s;}
   .back-btn:hover{color:var(--ds);border-color:var(--ds);}
+  .lp-btn{font-family:inherit;font-size:12px;font-weight:800;color:var(--mist);padding:8px 13px;border-radius:999px;
+    border:1px solid rgba(120,138,200,.3);background:rgba(255,255,255,.55);cursor:pointer;white-space:nowrap;
+    transition:.2s;user-select:none;-webkit-user-select:none;}
+  .lp-btn:hover{border-color:var(--ds);color:var(--ds);}
+  .lp-btn.on{background:var(--ds);color:#fff;border-color:var(--ds);box-shadow:0 3px 10px rgba(77,107,254,.4);}
+  .lp-btn.off{opacity:.55;}
 
   .seg{position:relative;display:flex;background:rgba(255,255,255,.72);
     border:1px solid rgba(120,138,200,.28);border-radius:999px;padding:3px;cursor:pointer;
@@ -220,6 +226,8 @@
   html[data-theme="night"] .main-btn.ghost{background:rgba(22,29,62,.7);color:#C9D3F5;border-color:rgba(120,140,230,.25);}
   html[data-theme="night"] .seg{background:rgba(22,29,62,.7);border-color:rgba(120,140,230,.22);}
   html[data-theme="night"] .back-btn{color:#C4CDF0;border-color:rgba(120,140,230,.25);}
+  html[data-theme="night"] .lp-btn{background:rgba(22,29,62,.7);color:#C4CDF0;border-color:rgba(120,140,230,.22);}
+  html[data-theme="night"] .lp-btn.on{background:var(--ds);color:#fff;border-color:var(--ds);}
   html[data-theme="night"] footer{color:#5A6590;}
   html[data-theme="night"] .stage-card{border-color:rgba(130,150,235,.2);}
 
@@ -227,10 +235,20 @@
     .wrap{grid-template-columns:1fr;grid-template-areas:"panel""stage""monitor";}
     .panel,.monitor{position:static;}
     .stage-card{min-height:420px;}
+    .lp-btn{font-size:11px;padding:7px 10px;}
   }
   @media (prefers-reduced-motion:reduce){
     .cloud{animation:none!important;}
   }
+
+  /* ===== 低压力模式（性能降载） =====
+     隐藏动画云层、去顶栏 backdrop-filter、停用动画/过渡；
+     主循环内（见脚本 __LOWPOWER）物理持续推进，仅限制单帧步进上限（1500→240）、
+     能量图降至 1 秒刷新、星点/轨迹/辉光画质降档 —— 运算不冻结 */
+  .lp .cloud{display:none!important;}
+  .lp .topbar{backdrop-filter:none;-webkit-backdrop-filter:none;background:rgba(244,247,253,.94);}
+  html[data-theme="night"] .lp .topbar{background:rgba(9,13,34,.97);}
+  .lp *{animation:none!important;transition:none!important;}
 
 </style>
 
@@ -252,6 +270,8 @@
   </a>
   <div class="top-right">
     <a class="back-btn" href="../index.html">← 返回主页</a>
+    <button class="lp-btn" id="lpBtn" type="button"
+      title="低压力模式：检测到手机/触屏或帧率低于 30 FPS 时自动限制运算强度（物理持续推进、仅降低单帧步进上限与画质）；点按切换 自动/开启/关闭">⚡ 低压力·自动</button>
     <div class="seg" id="themeToggle" role="button" tabindex="0" aria-label="切换日间/夜间模式" title="切换日间/夜间模式">
       <span class="thumb"></span>
       <span aria-hidden="true">☀️</span>
@@ -534,7 +554,7 @@ function updateScale(){
 function drawTrail(b){
   var t=trails[b],n=t.length/3;
   if(n<2)return;
-  var CHUNKS=14,per=Math.ceil(n/CHUNKS);
+  var CHUNKS=window.__LOWPOWER?6:14,per=Math.ceil(n/CHUNKS);
   ctx.strokeStyle=COLORS[b];ctx.lineWidth=1.6;ctx.lineJoin='round';ctx.lineCap='round';
   for(var c=0;c<CHUNKS;c++){
     var i0=c*per,i1=Math.min(n-1,(c+1)*per);
@@ -559,7 +579,7 @@ function drawBody(i){
   g.addColorStop(0,'#ffffff');
   g.addColorStop(.35,col);
   g.addColorStop(1,col);
-  ctx.shadowColor=col;ctx.shadowBlur=20;
+  ctx.shadowColor=col;ctx.shadowBlur=window.__LOWPOWER?0:20;
   ctx.fillStyle=g;
   ctx.beginPath();ctx.arc(p.x,p.y,rad,0,TAU);ctx.fill();
   ctx.shadowBlur=0;
@@ -590,7 +610,8 @@ function draw(){
   ctx.clearRect(0,0,W,H);
 
   ctx.fillStyle='rgba(255,255,255,.05)';
-  for(var s=0;s<40;s++){
+  var starN=window.__LOWPOWER?12:40;
+  for(var s=0;s<starN;s++){
     var sx=((s*197.3)%W),sy=((s*113.7)%H);
     ctx.fillRect(sx,sy,1.4,1.4);
   }
@@ -676,7 +697,8 @@ function advance(){
 
   var perFrame=params.dt*4*params.speed;
   var target=simT+perFrame,iter=0,b;
-  while(simT<target&&iter++<1500){
+  var maxIter=window.__LOWPOWER?240:1500;   // 低压力：限制单帧物理步进上限，运算持续但降档
+  while(simT<target&&iter++<maxIter){
 
     var rmin=minPairDist();
     var tau=Math.pow(Math.max(rmin,1e-4),1.5)/Math.sqrt(G*MTOT);
@@ -832,14 +854,16 @@ function loop(now){
   var dtms=now-lastFrame;lastFrame=now;
   if(dtms>0){fpsAcc+=1000/dtms;fpsN++;}
   if(autoRotate&&!dragging&&!document.hidden)view.yaw+=0.0016*Math.min(dtms,50)/16.7;
-  if(running&&!document.hidden)advance();
-  draw();
-  if(now-lastHudT>150){
+  if(running&&!document.hidden)advance();          // 低压力下也持续运算（advance 内部限步）
+  if(now-lastHudT>(window.__LOWPOWER?1000:150)){   // 低压力：能量图与统计低频刷新
     lastHudT=now;
-    $('hudFps').textContent=Math.round(fpsAcc/Math.max(fpsN,1));
-    fpsAcc=0;fpsN=0;
+    if(!window.__LOWPOWER){
+      $('hudFps').textContent=Math.round(fpsAcc/Math.max(fpsN,1));
+      fpsAcc=0;fpsN=0;
+    }
     syncStats();
   }
+  draw();
   requestAnimationFrame(loop);
 }
 
@@ -849,6 +873,65 @@ applyIC();
 syncStats();
 requestAnimationFrame(loop);
 
+</script>
+
+<script>
+  /* ===== 低压力模式（性能模式）控制器 =====
+     手机/触屏自动开启；连续约 2 秒帧率低于 30 FPS 自动开启；
+     右上角按钮三档切换：自动 → 开启 → 关闭（与主页共用 localStorage 键 lcxwsLowPower）。 */
+  (function(){
+    'use strict';
+    var KEY='lcxwsLowPower',MODES=['auto','on','off'];
+    var saved=null;try{saved=localStorage.getItem(KEY);}catch(e){}
+    var mode=MODES.indexOf(saved)>=0?saved:'auto';
+    var coarse=matchMedia('(pointer:coarse)').matches||matchMedia('(hover:none)').matches;
+    var autoOn=coarse;             // 手机/触屏 → 自动开
+    var rafId=null;
+    function effective(){return mode==='on'||(mode==='auto'&&autoOn);}
+    function render(){
+      var on=effective();
+      window.__LOWPOWER=on;
+      document.documentElement.classList.toggle('lp',on);
+      var btn=document.getElementById('lpBtn');
+      if(btn){
+        btn.classList.toggle('on',on);
+        btn.classList.toggle('off',mode==='off');
+        btn.classList.toggle('auto',mode==='auto');
+        btn.textContent=mode==='auto'
+          ?(on?'⚡ 低压力·运行中':'⚡ 低压力·自动')
+          :(mode==='on'?'⚡ 低压力·开启':'⚡ 低压力·关闭');
+      }
+    }
+    function setMode(m){
+      mode=m;
+      try{localStorage.setItem(KEY,m);}catch(e){}
+      render();sync();
+    }
+    function startMonitor(){
+      if(rafId||mode!=='auto'||effective())return;
+      var frames=0,last=performance.now(),low=0;
+      (function tick(t){
+        if(!document.hidden&&mode==='auto'&&!effective()){
+          frames++;
+          if(t-last>=1000){
+            var fps=Math.round(frames*1000/(t-last));
+            frames=0;last=t;
+            if(fps<30){low++;if(low>=2){autoOn=true;rafId=null;render();return;}}
+            else low=0;
+          }
+        }else{frames=0;last=t;}
+        rafId=requestAnimationFrame(tick);
+      })(performance.now());
+    }
+    function stopMonitor(){if(rafId){cancelAnimationFrame(rafId);rafId=null;}}
+    function sync(){if(mode==='auto'&&!effective())startMonitor();else stopMonitor();}
+    var btn=document.getElementById('lpBtn');
+    if(btn)btn.addEventListener('click',function(){
+      setMode(MODES[(MODES.indexOf(mode)+1)%MODES.length]);
+    });
+    render();sync();
+    window.__lpState=function(){return{mode:mode,on:effective(),autoOn:autoOn,coarse:coarse};};
+  })();
 </script>
 
 </body>
