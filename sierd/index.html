@@ -1,0 +1,1318 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>病原体进化模拟 · SIERD · LCXWS</title>
+<meta name="description" content="基于 SIERD 机制层的全球传染病进化策略游戏——投放病原体、进化分支、对抗全球疾控体系。纯学术模拟。">
+<style>
+  :root{
+    --bg:#0c0709;
+    --panel:rgba(24,11,14,.82);
+    --panel2:rgba(32,14,16,.72);
+    --line:rgba(255,148,58,.18);
+    --line2:rgba(255,200,90,.28);
+    --red:#ff5252;
+    --red-deep:#8e1f22;
+    --gold:#ffc93c;
+    --gold-dim:#c9a227;
+    --ink:#f6ebe4;
+    --muted:#b9a49a;
+    --dim:#8a6f66;
+    --ok:#ffd54f;
+    --bad:#ff6b6b;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html,body{height:100%;}
+  body{
+    background:var(--bg);color:var(--ink);
+    font-family:'Segoe UI','Noto Sans SC','Microsoft YaHei',system-ui,sans-serif;
+    overflow-x:hidden;min-height:100vh;
+  }
+  a{color:inherit;text-decoration:none;}
+  button{font-family:inherit;cursor:pointer;}
+  code{font-family:Consolas,'Courier New',monospace;}
+
+  /* ---------- 背景：红色与金色光晕 + 噪点 ---------- */
+  .bg-fx{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;}
+  .glow{position:absolute;border-radius:50%;filter:blur(90px);will-change:transform,opacity;}
+  .g1{width:720px;height:520px;left:-180px;top:-160px;
+    background:radial-gradient(closest-side,rgba(190,30,36,.35),rgba(190,30,36,0));
+    animation:breathe1 14s ease-in-out infinite alternate;}
+  .g2{width:760px;height:560px;right:-200px;top:8%;
+    background:radial-gradient(closest-side,rgba(212,150,30,.16),rgba(212,150,30,0));
+    animation:breathe2 18s ease-in-out infinite alternate;}
+  .g3{width:640px;height:520px;left:26%;bottom:-220px;
+    background:radial-gradient(closest-side,rgba(214,51,58,.22),rgba(214,51,58,0));
+    animation:breathe3 16s ease-in-out infinite alternate;}
+  @keyframes breathe1{from{transform:translate(0,0) scale(1);opacity:.75;}to{transform:translate(54px,40px) scale(1.14);opacity:1;}}
+  @keyframes breathe2{from{transform:translate(0,0) scale(1);opacity:.7;}to{transform:translate(-60px,34px) scale(1.1);opacity:1;}}
+  @keyframes breathe3{from{transform:translate(0,0) scale(1);opacity:.7;}to{transform:translate(40px,-44px) scale(1.12);opacity:1;}}
+  .grain{position:absolute;inset:0;opacity:.05;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='.6'/%3E%3C/svg%3E");}
+  .veil{position:fixed;inset:0;z-index:1;pointer-events:none;
+    background:radial-gradient(circle at 50% 18%,rgba(0,0,0,0) 0%,rgba(0,0,0,.55) 100%);}
+
+  /* ---------- 顶栏 ---------- */
+  .topbar{position:fixed;top:0;left:0;right:0;z-index:50;height:62px;
+    display:flex;align-items:center;justify-content:space-between;padding:0 clamp(14px,3vw,34px);
+    background:rgba(14,7,9,.72);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+    border-bottom:1px solid var(--line);}
+  .brand{display:flex;align-items:center;gap:10px;font-weight:800;font-size:17px;letter-spacing:.04em;color:var(--ink);}
+  .brand .logo{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:17px;
+    background:radial-gradient(circle at 30% 28%,#ff7b7b,#8e1f22);
+    box-shadow:0 0 0 2px rgba(255,120,120,.25),0 4px 14px rgba(255,60,60,.35);}
+  .top-right{display:flex;align-items:center;gap:10px;}
+  .chip{font-size:12px;font-weight:700;letter-spacing:.06em;color:var(--gold);
+    border:1px solid var(--line2);padding:6px 12px;border-radius:999px;background:rgba(255,200,90,.08);}
+  .ghost{font-size:12.5px;font-weight:700;color:var(--muted);padding:7px 13px;border-radius:999px;
+    border:1px solid var(--line);background:rgba(255,255,255,.03);transition:.2s;}
+  .ghost:hover{color:var(--gold);border-color:var(--line2);}
+
+  /* ---------- 布局 ---------- */
+  .wrap{position:relative;z-index:2;max-width:1380px;margin:0 auto;padding:84px clamp(14px,3vw,34px) 40px;}
+  .hidden{display:none!important;}
+
+  /* ---------- 开局向导 ---------- */
+  .wiz-card{
+    max-width:900px;margin:26px auto 0;background:var(--panel);border:1px solid var(--line);
+    border-radius:24px;padding:38px clamp(20px,4vw,46px);backdrop-filter:blur(10px);
+    box-shadow:0 0 90px -24px rgba(255,90,60,.4),0 0 60px -30px rgba(255,200,90,.25);
+    animation:pop .5s ease both;
+  }
+  @keyframes pop{from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:none;}}
+  h1{font-size:clamp(30px,5.4vw,46px);font-weight:900;text-align:center;letter-spacing:.1em;
+    background:linear-gradient(95deg,#ffd9d9,#ff5252 45%,#ffc93c 80%,#fff3d6);
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+    filter:drop-shadow(0 0 16px rgba(255,70,70,.5)) drop-shadow(0 0 30px rgba(255,190,60,.25));}
+  .sub{text-align:center;color:var(--muted);font-size:13.5px;line-height:1.9;margin:14px auto 8px;max-width:640px;}
+  .sub b{color:var(--gold);}
+  .disclaimer{text-align:center;color:var(--dim);font-size:12px;letter-spacing:.08em;margin:4px 0 26px;}
+
+  .wiz-step{display:none;}
+  .wiz-step.active{display:block;animation:pop .35s ease both;}
+  .wiz-title{font-size:15px;font-weight:800;color:var(--gold);letter-spacing:.14em;margin:6px 0 16px;
+    display:flex;align-items:center;gap:10px;}
+  .wiz-title::before{content:"";width:5px;height:16px;background:linear-gradient(var(--gold),var(--red));border-radius:3px;}
+  .pick-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px;}
+  .pick{
+    text-align:left;border:1px solid var(--line);border-radius:16px;padding:16px 16px 14px;
+    background:var(--panel2);color:var(--ink);transition:.2s;position:relative;overflow:hidden;}
+  .pick:hover{border-color:var(--line2);transform:translateY(-2px);
+    box-shadow:0 10px 26px -14px rgba(255,150,60,.4);}
+  .pick.sel{border-color:var(--gold);background:linear-gradient(160deg,rgba(255,120,60,.16),rgba(255,200,90,.08));
+    box-shadow:0 0 0 1px var(--gold),0 12px 30px -14px rgba(255,190,60,.45);}
+  .pick .nm{font-size:16px;font-weight:900;letter-spacing:.06em;color:#fff;}
+  .pick .cat{font-size:11px;color:var(--gold);letter-spacing:.16em;margin:7px 0 3px;}
+  .pick .desc{font-size:12.5px;color:var(--muted);line-height:1.75;margin-top:8px;}
+  .pick .desc b{color:#ffd9d9;}
+  .pick .check{position:absolute;top:12px;right:14px;color:var(--gold);opacity:0;transition:.2s;font-size:15px;}
+  .pick.sel .check{opacity:1;}
+
+  .city-search{display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;}
+  .city-search input{
+    flex:1;min-width:220px;padding:12px 14px;border-radius:12px;border:1px solid var(--line);
+    background:rgba(0,0,0,.4);color:#fff;font-size:15px;outline:none;transition:.2s;font-family:inherit;}
+  .city-search input:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(255,200,90,.15);}
+  .mini-btn{padding:11px 16px;border-radius:12px;border:1px dashed var(--line2);background:rgba(255,200,90,.07);
+    color:var(--gold);font-weight:800;font-size:13px;transition:.2s;}
+  .mini-btn:hover{background:rgba(255,200,90,.16);}
+  .city-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;margin-top:6px;}
+  .city-chip{
+    border:1px solid var(--line);border-radius:11px;padding:9px 10px;background:var(--panel2);
+    color:var(--muted);font-size:13px;text-align:left;transition:.15s;}
+  .city-chip:hover{border-color:var(--line2);color:var(--ink);}
+  .city-chip.sel{border-color:var(--gold);color:var(--gold);background:rgba(255,200,90,.1);font-weight:800;}
+  .wiz-nav{display:flex;gap:12px;justify-content:flex-end;margin-top:26px;flex-wrap:wrap;}
+  .btn{padding:12px 22px;border-radius:12px;border:none;font-size:14.5px;font-weight:900;letter-spacing:.1em;transition:.2s;}
+  .btn-primary{color:#1a0b00;background:linear-gradient(120deg,#ffd54f,#ff9f1c);box-shadow:0 10px 28px -10px rgba(255,170,40,.7);}
+  .btn-primary:hover{transform:translateY(-2px);box-shadow:0 14px 34px -10px rgba(255,180,50,.85);}
+  .btn-primary:disabled{opacity:.45;transform:none;cursor:not-allowed;box-shadow:none;}
+  .btn-ghost{color:var(--muted);border:1px solid var(--line);background:rgba(255,255,255,.03);}
+  .btn-ghost:hover{color:var(--gold);border-color:var(--line2);}
+  .btn-red{color:#fff;background:linear-gradient(120deg,#b91c1c,#ff5252);box-shadow:0 10px 26px -10px rgba(255,60,60,.6);}
+  .btn-red:hover{transform:translateY(-2px);}
+  .btn-sm{padding:8px 14px;font-size:12.5px;border-radius:10px;}
+
+  /* ---------- Day 0 评估 ---------- */
+  .report-box{border:1px solid var(--line);border-radius:16px;background:rgba(0,0,0,.35);padding:20px 22px;
+    line-height:2;font-size:13.5px;color:var(--muted);}
+  .report-box b{color:#fff;}
+  .report-box .gold{color:var(--gold);}
+  .report-box .red{color:var(--red);}
+
+  /* ---------- 主界面 ---------- */
+  #game .statusbar{
+    display:flex;align-items:center;gap:14px;flex-wrap:wrap;
+    background:var(--panel);border:1px solid var(--line);border-radius:16px;
+    padding:13px 18px;margin-bottom:16px;backdrop-filter:blur(10px);
+    box-shadow:0 8px 30px -16px rgba(255,90,60,.35);}
+  .stat-line{font-size:14.5px;font-weight:800;color:#fff;letter-spacing:.03em;}
+  .stat-line .sep{color:var(--dim);margin:0 8px;font-weight:400;}
+  .stat-line .gold{color:var(--gold);}
+  .stat-line .red{color:var(--red);}
+  .pause-banner{flex:1;text-align:right;font-size:12.5px;font-weight:800;color:var(--gold);
+    background:rgba(255,200,90,.1);border:1px dashed var(--line2);padding:6px 12px;border-radius:10px;}
+
+  .layout{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:16px;}
+  .col-left,.col-right{display:flex;flex-direction:column;gap:16px;min-width:0;}
+
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:15px 16px;
+    backdrop-filter:blur(10px);min-width:0;}
+  .panel h3{font-size:13px;font-weight:800;color:var(--gold);letter-spacing:.14em;margin-bottom:12px;
+    display:flex;align-items:center;gap:8px;}
+  .panel h3::before{content:"";width:4px;height:14px;background:linear-gradient(180deg,var(--gold),var(--red));border-radius:2px;}
+
+  .statcards{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;}
+  .statcard{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px 14px;
+    text-align:center;backdrop-filter:blur(10px);}
+  .statcard .k{font-size:11px;color:var(--dim);letter-spacing:.18em;margin-bottom:6px;}
+  .statcard .v{font-size:clamp(16px,2vw,21px);font-weight:900;color:#fff;font-variant-numeric:tabular-nums;}
+  .statcard .v.gold{color:var(--gold);}
+  .statcard .v.red{color:var(--red);}
+
+  .hot-row{display:grid;grid-template-columns:26px 46px 1fr 84px 74px;gap:8px;align-items:center;
+    padding:5px 0;border-bottom:1px dashed rgba(255,255,255,.05);font-size:13px;}
+  .hot-row:last-child{border-bottom:none;}
+  .hot-row .rk{color:var(--dim);font-weight:700;}
+  .hot-row .iso{font-weight:900;color:var(--gold);letter-spacing:.04em;}
+  .hot-row .nm{color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .hot-row .rate{text-align:right;font-weight:800;font-variant-numeric:tabular-nums;}
+  .hot-row .active{text-align:right;color:var(--muted);font-variant-numeric:tabular-nums;}
+  .hot-bar{height:6px;border-radius:3px;background:rgba(255,255,255,.06);overflow:hidden;grid-column:1/-1;margin-top:1px;}
+  .hot-bar i{display:block;height:100%;border-radius:3px;transition:width .4s;}
+
+  .wx-row{display:flex;justify-content:space-between;align-items:center;padding:4px 0;font-size:13px;
+    border-bottom:1px dashed rgba(255,255,255,.05);}
+  .wx-row:last-child{border-bottom:none;}
+  .wx-row .l{color:var(--muted);}
+  .wx-row .l b{color:#fff;font-weight:800;margin-right:6px;}
+  .wx-row .r{color:var(--gold);font-variant-numeric:tabular-nums;font-weight:700;}
+
+  .ev-line{padding:4px 0;font-size:13px;line-height:1.65;color:var(--muted);border-bottom:1px dashed rgba(255,255,255,.05);}
+  .ev-line:last-child{border-bottom:none;}
+  .ev-line b{color:#fff;}
+  .ev-line .tag{font-size:11px;padding:1px 7px;border-radius:999px;border:1px solid var(--line2);color:var(--gold);margin-right:6px;}
+
+  .rpt-line{padding:4px 0;font-size:13px;line-height:1.6;border-bottom:1px dashed rgba(255,255,255,.05);}
+  .rpt-line:last-child{border-bottom:none;}
+  .rpt-line .amt{font-weight:900;font-variant-numeric:tabular-nums;}
+  .rpt-line.plus .amt{color:#7ee081;}
+  .rpt-line.minus .amt{color:var(--red);}
+  .rpt-line .note{color:var(--muted);font-size:12.5px;}
+  .rpt-line.ann{color:var(--gold);}
+
+  .charts{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px;}
+  .chart-box{position:relative;height:190px;}
+  .chart-box canvas{width:100%;height:100%;display:block;}
+  .chart-legend{display:flex;gap:14px;flex-wrap:wrap;margin-top:8px;font-size:11.5px;color:var(--muted);}
+  .chart-legend span{display:flex;align-items:center;gap:5px;}
+  .chart-legend i{width:14px;height:3px;border-radius:2px;display:inline-block;}
+
+  .research-box{display:flex;align-items:center;gap:14px;flex-wrap:wrap;}
+  .research-box .lab{font-size:12.5px;color:var(--muted);font-weight:800;letter-spacing:.1em;flex:none;}
+  .rbar{flex:1;min-width:180px;height:12px;border-radius:6px;background:rgba(255,255,255,.07);overflow:hidden;position:relative;}
+  .rbar i{position:absolute;inset:0;width:0%;background:linear-gradient(90deg,#8e1f22,#ff5252 55%,#ffc93c);transition:width .5s;border-radius:6px;}
+  .rtype{font-size:12.5px;color:var(--muted);flex:none;}
+  .rtype b{color:var(--gold);}
+
+  .news-line{padding:5px 0;font-size:13px;line-height:1.7;border-bottom:1px dashed rgba(255,255,255,.05);}
+  .news-line:last-child{border-bottom:none;}
+  .news-line .layer{font-size:11px;font-weight:900;padding:1px 7px;border-radius:999px;margin-right:8px;letter-spacing:.08em;}
+  .news-line .layer.loc{color:#ffd9d9;border:1px solid rgba(255,130,130,.5);}
+  .news-line .layer.dom{color:#9fd8ff;border:1px solid rgba(120,190,255,.45);}
+  .news-line .layer.int{color:var(--gold);border:1px solid var(--line2);}
+  .news-line .txt{color:var(--muted);}
+  .news-line .txt b{color:#fff;}
+
+  .actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:16px;justify-content:center;}
+  .act{padding:10px 15px;border-radius:12px;border:1px solid var(--line);background:var(--panel2);
+    color:var(--ink);font-size:13px;font-weight:800;letter-spacing:.05em;transition:.18s;}
+  .act:hover{border-color:var(--line2);color:var(--gold);transform:translateY(-1px);}
+  .act.primary{color:#1a0b00;background:linear-gradient(120deg,#ffd54f,#ff9f1c);border:none;
+    box-shadow:0 8px 22px -10px rgba(255,170,40,.6);}
+  .act.primary:hover{box-shadow:0 12px 28px -10px rgba(255,180,50,.8);}
+  .act.warn{color:#fff;background:linear-gradient(120deg,#b91c1c,#ff5252);border:none;}
+  .act .key{font-size:10px;opacity:.75;display:block;letter-spacing:.14em;margin-top:2px;font-weight:600;}
+  .act.primary .key,.act.warn .key{color:rgba(20,8,0,.7);}
+  .act.warn .key{color:rgba(255,255,255,.8);}
+  .evgroup{display:flex;gap:6px;flex-wrap:wrap;align-items:center;}
+  .evgroup .evtag{font-size:11.5px;padding:6px 10px;border-radius:999px;border:1px dashed var(--line2);
+    color:var(--gold);background:rgba(255,200,90,.05);transition:.15s;}
+  .evgroup .evtag:hover{background:rgba(255,200,90,.16);}
+
+  /* ---------- 弹窗 ---------- */
+  .modal{position:fixed;inset:0;z-index:80;display:flex;align-items:center;justify-content:center;
+    background:rgba(5,2,3,.78);backdrop-filter:blur(6px);animation:fadeIn .25s ease;}
+  @keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
+  .modal-box{max-width:960px;width:calc(100% - 36px);max-height:86vh;overflow-y:auto;
+    background:var(--panel);border:1px solid var(--line2);border-radius:20px;padding:24px 26px;
+    box-shadow:0 0 90px -20px rgba(255,120,60,.5),0 0 70px -30px rgba(255,200,90,.3);
+    animation:pop .35s ease both;}
+  .modal-box h2{font-size:17px;font-weight:900;letter-spacing:.1em;color:#fff;margin-bottom:16px;
+    display:flex;align-items:center;gap:10px;justify-content:space-between;}
+  .modal-box h2 .x{cursor:pointer;color:var(--dim);font-size:15px;border:1px solid var(--line);border-radius:10px;padding:4px 11px;transition:.2s;}
+  .modal-box h2 .x:hover{color:var(--gold);border-color:var(--line2);}
+  .m-close{display:block;margin:20px auto 0;}
+
+  .evo-row{display:grid;grid-template-columns:86px 1fr 150px 150px;gap:10px;align-items:center;
+    border:1px solid var(--line);border-radius:14px;padding:11px 14px;margin-bottom:9px;background:var(--panel2);}
+  .evo-row.sel{border-color:var(--gold);box-shadow:0 0 0 1px rgba(255,200,90,.5);}
+  .evo-row .cat{font-size:11px;color:var(--gold);letter-spacing:.14em;}
+  .evo-row .nm{font-size:15px;font-weight:900;color:#fff;}
+  .evo-row .lv{font-size:11px;color:var(--muted);margin-top:3px;}
+  .evo-row .fx{font-size:12px;color:var(--muted);line-height:1.6;}
+  .evo-row .fx b{color:#ffd9d9;}
+  .evo-row .fx .dw{color:var(--gold);}
+  .evo-row .px{font-size:13px;font-weight:900;color:var(--gold);text-align:right;font-variant-numeric:tabular-nums;}
+  .evo-row .btns{display:flex;gap:6px;justify-content:flex-end;}
+  .evo-row .btns button{padding:7px 13px;border-radius:9px;border:1px solid var(--line2);background:rgba(255,200,90,.08);
+    color:var(--gold);font-weight:800;font-size:12px;transition:.15s;}
+  .evo-row .btns button:hover{background:rgba(255,200,90,.2);}
+  .evo-status{margin-top:14px;font-size:13.5px;font-weight:800;color:#fff;text-align:right;}
+  .evo-status .gold{color:var(--gold);}
+  .evo-status .red{color:var(--red);}
+
+  .kv{display:grid;grid-template-columns:150px 1fr;gap:4px 14px;font-size:13.5px;line-height:1.9;margin-top:8px;}
+  .kv .k{color:var(--dim);letter-spacing:.06em;}
+  .kv .v{color:var(--muted);}
+  .kv .v b{color:#fff;}
+  .kv .v .red{color:var(--red);}
+  .kv .v .gold{color:var(--gold);}
+  .who-cond{display:grid;gap:8px;margin:12px 0;}
+  .who-cond .c{padding:9px 13px;border-radius:11px;border:1px solid var(--line);font-size:13px;color:var(--muted);background:var(--panel2);}
+  .who-cond .c.on{border-color:var(--line2);color:var(--gold);background:rgba(255,200,90,.07);font-weight:700;}
+  .who-cond .c.done{border-color:rgba(126,224,129,.4);color:#9fe6a2;}
+
+  .ledger-rows{font-size:12.5px;line-height:1.9;}
+  .ledger-rows .row{display:grid;grid-template-columns:58px 44px 1fr;gap:8px;border-bottom:1px dashed rgba(255,255,255,.05);padding:2px 0;}
+  .ledger-rows .d{color:var(--dim);}
+  .ledger-rows .amt{font-weight:900;text-align:right;}
+  .ledger-rows .plus .amt{color:#7ee081;}
+  .ledger-rows .minus .amt{color:var(--red);}
+  .ledger-rows .note{color:var(--muted);}
+
+  .news-list{font-size:13px;line-height:2;}
+  .news-list .n{border-bottom:1px dashed rgba(255,255,255,.05);padding:3px 0;color:var(--muted);}
+  .news-list .n .d{color:var(--dim);margin-right:8px;}
+  .news-list .n .layer{font-weight:800;margin-right:8px;}
+
+  .help-txt{font-size:13px;line-height:2;color:var(--muted);}
+  .help-txt h4{color:var(--gold);font-size:13.5px;margin:14px 0 4px;letter-spacing:.08em;}
+  .help-txt b{color:#fff;}
+  .help-txt .formula{display:block;background:rgba(0,0,0,.4);border:1px solid var(--line);border-radius:10px;
+    padding:9px 13px;margin:7px 0;color:#ffd9d9;font-size:12.5px;line-height:1.8;}
+
+  .gameover-box{text-align:center;max-width:560px;width:calc(100% - 36px);}
+  .go-title{font-size:clamp(28px,6vw,42px);font-weight:900;letter-spacing:.12em;margin:8px 0 18px;}
+  .go-title.win{color:#ffd54f;text-shadow:0 0 30px rgba(255,200,60,.6);}
+  .go-title.lose{color:#ff6b6b;text-shadow:0 0 30px rgba(255,60,60,.6);}
+  .go-stats{font-size:14px;line-height:2.1;color:var(--muted);margin:10px 0 22px;}
+  .go-stats b{color:#fff;}
+
+  footer{position:relative;z-index:2;text-align:center;color:var(--dim);font-size:11.5px;padding:6px 0 34px;letter-spacing:.18em;}
+
+  @media (max-width:1020px){
+    .layout{grid-template-columns:1fr;}
+    .charts{grid-template-columns:1fr;}
+    .statcards{grid-template-columns:repeat(2,1fr);}
+    .evo-row{grid-template-columns:1fr;gap:6px;}
+    .evo-row .px,.evo-row .btns{text-align:left;justify-content:flex-start;}
+  }
+  @media (max-width:560px){
+    .statcards{grid-template-columns:repeat(2,1fr);}
+    .hot-row{grid-template-columns:22px 40px 1fr 62px;font-size:12.5px;}
+    .hot-row .active{display:none;}
+  }
+</style>
+</head>
+<body>
+
+<div class="bg-fx" aria-hidden="true">
+  <div class="glow g1"></div>
+  <div class="glow g2"></div>
+  <div class="glow g3"></div>
+  <div class="grain"></div>
+</div>
+<div class="veil" aria-hidden="true"></div>
+
+<header class="topbar">
+  <a class="brand" href="../index.html">
+    <span class="logo">🦠</span>
+    <span>病原体进化模拟</span>
+  </a>
+  <div class="top-right">
+    <span class="chip" id="seedChip" style="display:none"></span>
+    <button class="ghost" id="btnHelp">❓ 机制说明</button>
+    <button class="ghost" onclick="location.href='../index.html'">⌂ 返回首页</button>
+  </div>
+</header>
+
+<!-- ================= 开局向导 ================= -->
+<div id="wizard" class="wrap">
+  <div class="wiz-card">
+    <h1>病原体进化模拟</h1>
+    <p class="sub">以 <b>SEIRD 机制层</b>为内核的全球传染病进化策略游戏：投放病原体、调控进化分支、
+      对抗自动响应的全球疾控体系（检测隔离 / 疫苗研发 / WHO 预警 / 随机事件）。</p>
+    <p class="disclaimer">⚠ 纯学术模拟，不代表真实疫情预测</p>
+
+    <div id="wizStep1" class="wiz-step active">
+      <div class="wiz-title">第 1 步 · 选择难度</div>
+      <div class="pick-grid" id="diffGrid"></div>
+      <div class="wiz-nav">
+        <button class="btn btn-primary" id="diffNext">下一步 →</button>
+      </div>
+    </div>
+
+    <div id="wizStep2" class="wiz-step">
+      <div class="wiz-title">第 2 步 · 选择病原体</div>
+      <div class="pick-grid" id="pathGrid"></div>
+      <div class="wiz-nav">
+        <button class="btn btn-ghost" data-back="1">← 上一步</button>
+        <button class="btn btn-primary" id="pathNext">下一步 →</button>
+      </div>
+    </div>
+
+    <div id="wizStep3" class="wiz-step">
+      <div class="wiz-title">第 3 步 · 选择投放城市</div>
+      <div class="city-search">
+        <input id="cityInput" type="text" placeholder="搜索城市：武汉 / WUH / CHN / 纽约…" autocomplete="off">
+        <button class="mini-btn" id="cityRandom">🎲 随机</button>
+      </div>
+      <div class="city-list" id="cityList"></div>
+      <div class="wiz-nav">
+        <button class="btn btn-ghost" data-back="2">← 上一步</button>
+        <button class="btn btn-primary" id="cityNext">下一步 →</button>
+      </div>
+    </div>
+
+    <div id="wizStep4" class="wiz-step">
+      <div class="wiz-title">开局评估 · Day 0</div>
+      <div class="report-box" id="day0Report"></div>
+      <div class="wiz-nav">
+        <button class="btn btn-ghost" data-back="3">← 上一步</button>
+        <button class="btn btn-red" id="startGame">🦠 投放病原体，开始游戏</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ================= 主游戏 ================= -->
+<section id="game" class="wrap hidden">
+  <div class="statusbar">
+    <div class="stat-line" id="statusLine"></div>
+    <div class="pause-banner" id="pauseBanner" style="display:none"></div>
+  </div>
+
+  <div class="layout">
+    <div class="col-left">
+      <div class="panel">
+        <h3>🌡 疫情热力榜 Top 12（按感染率）</h3>
+        <div id="hotList"></div>
+      </div>
+      <div class="panel">
+        <h3>📈 全球趋势（累计 / 活跃 / 死亡 + 有效 R）</h3>
+        <div class="charts">
+          <div class="chart-box"><canvas id="chartLog"></canvas></div>
+          <div class="chart-box"><canvas id="chartR"></canvas></div>
+        </div>
+        <div class="chart-legend">
+          <span><i style="background:#ff5e62"></i>累计感染</span>
+          <span><i style="background:#ffc93c"></i>活跃感染</span>
+          <span><i style="background:#f4a9b8"></i>累计死亡</span>
+          <span><i style="background:#7ec8ff"></i>有效 R（右图，虚线=1.0）</span>
+        </div>
+      </div>
+    </div>
+    <div class="col-right">
+      <div class="statcards" id="statCards"></div>
+      <div class="panel">
+        <h3>☁ 热点国家当日天气</h3>
+        <div id="wxList"></div>
+      </div>
+      <div class="panel">
+        <h3>📰 事件与封锁</h3>
+        <div id="evList"></div>
+      </div>
+      <div class="panel">
+        <h3>📋 今日报告</h3>
+        <div id="rptList"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel" style="margin-top:16px">
+    <h3>💉 疫苗研发</h3>
+    <div class="research-box" id="researchBox"></div>
+  </div>
+
+  <div class="panel" style="margin-top:16px">
+    <h3>📜 三层新闻</h3>
+    <div id="newsList"></div>
+  </div>
+
+  <div class="actions" id="actionBar"></div>
+</section>
+
+<div id="modalRoot"></div>
+
+<footer>LCXWS · 纯学术模拟 · SIERD 机制层移植自 Python 原版</footer>
+
+<script src="game.js"></script>
+<script>
+(function () {
+  "use strict";
+  const S = window.SIERD;
+  const $ = id => document.getElementById(id);
+
+  // ---------------- 全局状态 ----------------
+  let world = null;
+  let cfg = null;
+  let diffKey = "normal";
+  let pathKey = "covid";
+  let cityObj = null;
+  let auto = false;
+  let autoTimer = null;
+  let pauseReason = null;
+  let modalMode = null;
+  let evoSelection = 0;
+  let countryBuffer = "";
+
+  const fmt = n => Number(n).toLocaleString("zh-CN", { maximumFractionDigits: 0 });
+  const fmt1 = n => Number(n).toLocaleString("zh-CN", { maximumFractionDigits: 1 });
+  const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+
+  function severityClass(rate) {
+    if (rate < 0.001) return "#7ee081";
+    if (rate < 0.005) return "#ffd54f";
+    if (rate < 0.02) return "#ff9f1c";
+    if (rate < 0.05) return "#ff5252";
+    return "#ff1744";
+  }
+
+  // ===================================================================
+  // 向导
+  // ===================================================================
+  const DIFF_DESC = {
+    easy: "初始 112 点 · 收入加成 +5 · 允许透支 · 研发周期 365-730 天 · 政府响应延迟 ×2.0",
+    normal: "初始 75 点 · 无加成 · 允许透支 · 研发周期 180-365 天 · 响应延迟 ×1.0",
+    hard: "初始 60 点 · 收入加成 −2 · 禁止透支 · 研发周期 120-240 天 · 响应延迟 ×0.5",
+    realistic: "初始 7 点 · 收入 +1 · 禁止透支 · 研发周期 90-180 天 · 响应延迟 ×0.3",
+  };
+
+  function buildDiffGrid() {
+    const g = $("diffGrid");
+    g.innerHTML = "";
+    for (const k of Object.keys(S.DIFFICULTY)) {
+      const d = S.DIFFICULTY[k];
+      const el = document.createElement("button");
+      el.className = "pick" + (k === diffKey ? " sel" : "");
+      el.innerHTML = `<span class="nm">${S.DIFFICULTY_CN[k]}</span>
+        <div class="cat">${k.toUpperCase()}</div>
+        <div class="desc">${esc(DIFF_DESC[k])}</div>
+        <span class="check">✔</span>`;
+      el.onclick = () => { diffKey = k; buildDiffGrid(); };
+      g.appendChild(el);
+    }
+  }
+
+  function buildPathGrid() {
+    const g = $("pathGrid");
+    g.innerHTML = "";
+    const lib = S.pathogenLibrary();
+    for (const k of Object.keys(lib)) {
+      const p = lib[k];
+      const mu = Math.min(1, p.ifr * p.gamma / Math.max(1e-9, 1 - p.ifr));
+      const el = document.createElement("button");
+      el.className = "pick" + (k === pathKey ? " sel" : "");
+      el.innerHTML = `<span class="nm">${p.name_cn}</span>
+        <div class="cat">基准 R₀ ${p.r0_bench.toFixed(1)} · ${esc(S.ROUTE_CN[p.route] || p.route)}传播</div>
+        <div class="desc">感染病死率 <b>${(p.ifr * 100).toFixed(1)}%</b> · 病程 <b>${(1 / p.gamma).toFixed(0)}</b> 天 · 潜伏 <b>${(1 / p.sigma).toFixed(0)}</b> 天 · 无症状 <b>${(p.asymp_frac * 100).toFixed(0)}%</b></div>
+        <span class="check">✔</span>`;
+      el.onclick = () => { pathKey = k; buildPathGrid(); };
+      g.appendChild(el);
+    }
+  }
+
+  function cityGrid(list) {
+    const box = $("cityList");
+    box.innerHTML = "";
+    if (!list.length) {
+      box.innerHTML = `<div style="color:var(--dim);font-size:13px;grid-column:1/-1;padding:8px 4px;">未找到匹配城市，试试：武汉 / WUH / CHN / 纽约 / 伦敦 / 东京…</div>`;
+      return;
+    }
+    for (const c of list) {
+      const el = document.createElement("button");
+      el.className = "city-chip" + (cityObj && cityObj.name_cn === c.name_cn ? " sel" : "");
+      el.textContent = c.name_cn;
+      el.title = `${c.name_cn} · ${c.iso3} · 人口 ${fmt(c.pop)} · 机场日均 ${fmt(Math.round(c.airport_annual / 365))} 人次`;
+      el.onclick = () => { cityObj = c; cityGrid(list); };
+      box.appendChild(el);
+    }
+  }
+
+  function filterCity() {
+    const q = $("cityInput").value;
+    const lib = S.cityLibrary();
+    if (!q.trim()) {
+      cityGrid(Object.keys(lib).slice(0, 24).map(k => lib[k]));
+    } else {
+      cityGrid(S.matchCity(q));
+    }
+  }
+
+  function showStep(n) {
+    for (let i = 1; i <= 4; i++) $("wizStep" + i).classList.toggle("active", i === n);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  function renderDay0() {
+    const lib = S.cityLibrary();
+    const city = cityObj || lib["武汉"];
+    const countries = S.builtinCountries();
+    const iso = countries[city.iso3] ? city.iso3 : Object.keys(countries)[0];
+    const cdata = countries[iso];
+    const p = S.pathogenLibrary()[pathKey];
+    const mu = Math.min(1, p.ifr * p.gamma / Math.max(1e-9, 1 - p.ifr));
+    $("day0Report").innerHTML = `
+      <div><b>投放城市：</b>${city.name_cn}（${cdata.name_cn} ${iso}）</div>
+      <div>人口 <b>${fmt(city.pop)}</b> · 密度 <b>${fmt(Math.round(city.pop / city.area_km2))}</b> 人/km² · 日均航空进出港 <b>${fmt(Math.round(city.airport_annual / 365))}</b> 人次</div>
+      <div>气候带 <b>${cdata.climate}</b> · ICU 床位 <b>${fmt(cdata.icu_beds)}</b> 张 · 日检测能力 <b>${fmt(cdata.daily_tests)}</b> 剂</div>
+      <div>信任度 <b>${(cdata.trust * 100).toFixed(0)}</b> · 疫苗日产能 <b>${fmt(cdata.vaccine_capacity)}</b> 剂 · 政府响应延迟 <b>${cdata.response_delay}</b> 天</div>
+      <div><b>病原体：</b>${p.name_cn}（基准 R₀ <b>${p.r0_bench.toFixed(1)}</b>，IFR <b>${(p.ifr * 100).toFixed(1)}%</b>）</div>
+      <div class="gold">难度：${S.DIFFICULTY_CN[diffKey]} · 初始基因点 ${S.DIFFICULTY[diffKey].points}</div>
+      <div class="red">⚠ 纯学术模拟，不代表真实疫情预测</div>`;
+  }
+
+  // ---------------- 向导事件绑定 ----------------
+  function initWizard() {
+    buildDiffGrid();
+    buildPathGrid();
+    $("diffNext").onclick = () => showStep(2);
+    $("pathNext").onclick = () => showStep(3);
+    $("cityNext").onclick = () => {
+      if (!cityObj) { cityObj = S.cityLibrary()["武汉"]; $("cityInput").value = ""; filterCity(); }
+      renderDay0();
+      showStep(4);
+    };
+    document.querySelectorAll("[data-back]").forEach(b => b.onclick = () => showStep(+b.dataset.back));
+    $("cityInput").addEventListener("input", filterCity);
+    $("cityRandom").onclick = () => {
+      const lib = S.cityLibrary();
+      const keys = Object.keys(lib);
+      cityObj = lib[keys[Math.floor(Math.random() * keys.length)]];
+      $("cityInput").value = "";
+      filterCity();
+    };
+    filterCity();
+    $("startGame").onclick = () => startGame(diffKey, pathKey, cityObj);
+  }
+
+  // ===================================================================
+  // 开新局
+  // ===================================================================
+  function startGame(diff, pkey, city) {
+    cfg = new S.Config();
+    cfg.difficulty = diff;
+    const countries = S.builtinCountries();
+    const pathogen = S.pathogenLibrary()[pkey];
+    const c = city || S.cityLibrary()["武汉"];
+    world = new S.World(cfg, countries, pathogen, c);
+    auto = false; pauseReason = null;
+    $("wizard").classList.add("hidden");
+    $("game").classList.remove("hidden");
+    $("seedChip").style.display = "";
+    $("seedChip").textContent = "种子 " + world.seed;
+    closeModal();
+    buildActionBar();
+    renderAll();
+  }
+
+  // ===================================================================
+  // 主渲染
+  // ===================================================================
+  function renderAll() {
+    if (!world) return;
+    renderStatus();
+    renderStatCards();
+    renderHot();
+    renderWeather();
+    renderEvents();
+    renderReport();
+    renderResearch();
+    renderNews();
+    drawCharts();
+    if (world.game_over) showGameOver();
+  }
+
+  function renderStatus() {
+    const s = world.globalStats();
+    let totalPop = 0;
+    for (const c of Object.values(world.countries)) totalPop += c.pop;
+    const autoTxt = auto ? `<span class="gold"> · ⏩ 自动推进中</span>` : "";
+    const pauseTxt = pauseReason ? `<span class="red"> · ${esc(pauseReason)}（已暂停）</span>` : "";
+    $("statusLine").innerHTML =
+      `Day <b>${world.day}</b><span class="sep">·</span>难度 <b class="gold">${S.DIFFICULTY_CN[cfg.difficulty]}</b>` +
+      `<span class="sep">·</span>基因点 <b class="gold">${fmt1(world.points)}</b>` +
+      `<span class="sep">·</span>WHO <b class="red">${world.who_level}</b> 级` +
+      `<span class="sep">·</span>感染占比 <b>${(s.cum / totalPop * 100).toFixed(1)}%</b>` +
+      autoTxt + pauseTxt;
+    $("pauseBanner").style.display = pauseReason ? "" : "none";
+    $("pauseBanner").textContent = pauseReason || "";
+  }
+
+  function renderStatCards() {
+    const s = world.globalStats();
+    const seq = Math.round(world.sequencing_progress * 100);
+    const cards = [
+      ["累计感染", fmt(s.cum), "v red"],
+      ["活跃感染", fmt(s.active), "v"],
+      ["累计死亡", fmt(s.deaths), "v"],
+      ["有效 R", s.r0_live.toFixed(2), "v gold"],
+      ["关注度", fmt(world.attention), "v"],
+      ["影响力", fmt(world.influence), "v"],
+      ["测序分析", seq + "%", "v gold"],
+      ["抗原距离", world.antigen_distance.toFixed(2), "v"],
+    ];
+    $("statCards").innerHTML = cards.map(c =>
+      `<div class="statcard"><div class="k">${c[0]}</div><div class="${c[2]}">${c[1]}</div></div>`).join("");
+  }
+
+  function renderHot() {
+    const rows = Object.values(world.countries)
+      .sort((a, b) => b.infection_rate - a.infection_rate)
+      .slice(0, cfg.top_n);
+    const maxRate = Math.max(0.0001, rows[0] ? rows[0].infection_rate : 0.0001);
+    $("hotList").innerHTML = `<div class="hot-row" style="font-weight:800;color:var(--gold);font-size:11.5px;letter-spacing:.08em">
+      <span>#</span><span>代码</span><span>国家</span><span style="text-align:right">感染率</span><span style="text-align:right" class="active">活跃</span></div>` +
+      rows.map((c, i) => {
+        const col = severityClass(c.infection_rate);
+        return `<div class="hot-row">
+          <span class="rk">${i + 1}</span>
+          <span class="iso">${c.iso3}</span>
+          <span class="nm">${esc(c.d.name_cn)}</span>
+          <span class="rate" style="color:${col}">${(c.infection_rate * 100).toFixed(3)}%</span>
+          <span class="active">${fmt(c.I)}</span>
+          <div class="hot-bar"><i style="width:${Math.min(100, c.infection_rate / maxRate * 100).toFixed(1)}%;background:${col}"></i></div>
+        </div>`;
+      }).join("");
+  }
+
+  function renderWeather() {
+    const hot = Object.values(world.countries).sort((a, b) => b.I - a.I).slice(0, 3);
+    $("wxList").innerHTML = hot.map(c => `
+      <div class="wx-row">
+        <span class="l"><b>${c.iso3}</b>${esc(c.d.name_cn)}</span>
+        <span class="r">${c.temp.toFixed(0)}°C · AH ${c.ah.toFixed(1)} · ${S.SEASON_LABEL[c.season] || c.season}</span>
+      </div>`).join("") || `<div style="color:var(--dim);font-size:13px;">暂无天气数据</div>`;
+  }
+
+  function renderEvents() {
+    const lines = [];
+    const closed = Object.values(world.countries).filter(c => c.venues.gathering.mode === "closed");
+    if (closed.length) {
+      const names = closed.slice(0, 4).map(c => c.d.name_cn).join("、");
+      const more = closed.length > 4 ? ` 等 ${closed.length} 国` : "";
+      lines.push(`<div class="ev-line"><span class="tag">🔒</span><b>封锁：</b>${esc(names)}${esc(more)}</div>`);
+    }
+    const modLines = [];
+    for (const iso3 of Object.keys(world.events.modifiers)) {
+      const mods = world.events.modifiers[iso3];
+      for (const k of Object.keys(mods)) {
+        const [v, until] = mods[k];
+        if (world.day <= until) {
+          const c = iso3 !== "global" ? world.countries[iso3] : null;
+          const name = c ? c.d.name_cn : "全球";
+          modLines.push(`<div class="ev-line"><span class="tag">⏳</span><b>${esc(k)}</b> ${esc(name)} · 剩 ${until - world.day} 天</div>`);
+        }
+      }
+    }
+    lines.push(...modLines.slice(0, 7));
+    if (!lines.length) lines.push(`<div class="ev-line" style="color:var(--dim)">无封锁国家、无进行中的事件效果</div>`);
+    $("evList").innerHTML = lines.join("");
+  }
+
+  function renderReport() {
+    const lines = [];
+    const todayLedger = world.ledger.filter(l => l[0] === world.day);
+    if (todayLedger.length) {
+      for (const [, kind, amt, note] of todayLedger.slice(-5)) {
+        const cls = amt >= 0 ? "plus" : "minus";
+        lines.push(`<div class="rpt-line ${cls}"><span class="amt">${amt >= 0 ? "+" : ""}${fmt1(amt)}</span> <span class="note">${esc(kind)} · ${esc(note)}</span></div>`);
+      }
+    } else if (world.day > 0) {
+      lines.push(`<div class="rpt-line" style="color:var(--dim)">今日无点数变动</div>`);
+    }
+    for (const a of world.announcements.slice(-4)) {
+      lines.push(`<div class="rpt-line ann">📢 ${esc(a)}</div>`);
+    }
+    if (!lines.length && world.day === 0) {
+      lines.push(`<div class="rpt-line" style="color:var(--dim)">Day 0：点击「推进 1 天」开始传播</div>`);
+    }
+    $("rptList").innerHTML = lines.join("");
+  }
+
+  function renderResearch() {
+    const r = world.research;
+    const box = $("researchBox");
+    if (r.done) {
+      box.innerHTML = `<span class="lab">研发</span><div class="rtype"><b style="color:#7ee081">✅ 疫苗研发完成，已量产</b></div>`;
+    } else if (r.stalled) {
+      box.innerHTML = `<span class="lab">研发</span><div class="rtype"><b style="color:var(--red)">⚠ 研发已停滞（3 次失败）</b></div>`;
+    } else if (!r.unlocked) {
+      box.innerHTML = `<span class="lab">研发</span><div class="rtype">🔬 未解锁（测序进度 <b>${Math.round(world.sequencing_progress * 100)}%</b>）</div>`;
+    } else {
+      const pct = (r.progressFrac() * 100).toFixed(1);
+      box.innerHTML = `<span class="lab">研发</span>
+        <div class="rbar"><i style="width:${pct}%"></i></div>
+        <div class="rtype"><b>${r.stage_name}</b> 剩余 ${Math.round(r.remainingDays())} 天（失败 ${r.failures} 次）</div>`;
+    }
+  }
+
+  function renderNews() {
+    const items = world.news.slice(-3);
+    const layerMap = { 本地: "loc", 国内: "dom", 国际: "int" };
+    $("newsList").innerHTML = items.map(([, layer, text]) => {
+      const cls = layerMap[layer] || "int";
+      return `<div class="news-line"><span class="layer ${cls}">${esc(layer)}</span><span class="txt">${esc(text)}</span></div>`;
+    }).join("") || `<div class="news-line" style="color:var(--dim)">（暂无新闻）</div>`;
+  }
+
+  // ===================================================================
+  // 图表
+  // ===================================================================
+  function setupCanvas(cv) {
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const r = cv.getBoundingClientRect();
+    const w = Math.max(60, r.width), h = Math.max(60, r.height);
+    cv.width = Math.round(w * dpr);
+    cv.height = Math.round(h * dpr);
+    const ctx = cv.getContext("2d");
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    return [ctx, w, h];
+  }
+
+  function drawLogChart() {
+    const cv = $("chartLog");
+    const hist = world.global_history;
+    if (!hist.length) { const [ctx] = setupCanvas(cv); ctx.clearRect(0, 0, cv.width, cv.height); return; }
+    const [ctx, w, h] = setupCanvas(cv);
+    ctx.clearRect(0, 0, w, h);
+    const padL = 46, padR = 10, padT = 10, padB = 20;
+    const iw = w - padL - padR, ih = h - padT - padB;
+    // log scale 1 -> 10^9
+    const yMaxLog = 10;
+    const yOf = v => padT + ih * (1 - (Math.log10(Math.max(1, v)) / yMaxLog));
+    const xOf = d => padL + (hist.length > 1 ? (d / (hist.length - 1)) * iw : iw / 2);
+    // grid
+    ctx.strokeStyle = "rgba(255,200,90,.08)";
+    ctx.fillStyle = "rgba(233,211,200,.55)";
+    ctx.font = "10px Consolas,monospace";
+    ctx.lineWidth = 1;
+    for (let e = 0; e <= yMaxLog; e += 1) {
+      const v = Math.pow(10, e);
+      const y = yOf(v);
+      ctx.beginPath(); ctx.moveTo(padL, y); ctx.lineTo(w - padR, y); ctx.stroke();
+      ctx.fillText("1e" + e, 4, y + 3);
+    }
+    const series = [
+      { key: 1, color: "#ff5e62", w: 1.7 },
+      { key: 2, color: "#ffc93c", w: 1.5 },
+      { key: 4, color: "#f4a9b8", w: 1.3 },
+    ];
+    for (const s of series) {
+      ctx.beginPath();
+      ctx.strokeStyle = s.color;
+      ctx.lineWidth = s.w;
+      ctx.lineJoin = "round";
+      hist.forEach((row, i) => {
+        const x = xOf(i), y = yOf(row[s.key]);
+        if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+      });
+      ctx.stroke();
+    }
+    // x labels
+    if (hist.length > 1) {
+      ctx.fillStyle = "rgba(233,211,200,.5)";
+      const step = Math.max(1, Math.floor(hist.length / 6));
+      for (let d = 0; d < hist.length; d += step) {
+        ctx.fillText("D" + hist[d][0], xOf(d) - 8, h - 6);
+      }
+    }
+  }
+
+  function drawRChart() {
+    const cv = $("chartR");
+    const hist = world.global_history;
+    if (!hist.length) { const [ctx] = setupCanvas(cv); ctx.clearRect(0, 0, cv.width, cv.height); return; }
+    const [ctx, w, h] = setupCanvas(cv);
+    ctx.clearRect(0, 0, w, h);
+    const padL = 30, padR = 10, padT = 10, padB = 20;
+    const iw = w - padL - padR, ih = h - padT - padB;
+    const maxR = Math.min(6, Math.max(1.2, ...hist.map(r => r[6]) || [1.2]));
+    const yOf = v => padT + ih * (1 - v / maxR);
+    const xOf = d => padL + (hist.length > 1 ? (d / (hist.length - 1)) * iw : iw / 2);
+    ctx.strokeStyle = "rgba(255,200,90,.08)";
+    ctx.fillStyle = "rgba(233,211,200,.55)";
+    ctx.font = "10px Consolas,monospace";
+    for (let i = 0; i <= 4; i++) {
+      const v = maxR * i / 4;
+      const y = yOf(v);
+      ctx.beginPath(); ctx.moveTo(padL, y); ctx.lineTo(w - padR, y); ctx.stroke();
+      ctx.fillText(v.toFixed(1), 2, y + 3);
+    }
+    // R=1 line
+    ctx.strokeStyle = "rgba(255,82,82,.55)";
+    ctx.setLineDash([5, 4]);
+    ctx.beginPath(); ctx.moveTo(padL, yOf(1)); ctx.lineTo(w - padR, yOf(1)); ctx.stroke();
+    ctx.setLineDash([]);
+    // polyline of Reff with gradient fill
+    const grad = ctx.createLinearGradient(0, padT, 0, h - padB);
+    grad.addColorStop(0, "rgba(126,200,255,.35)");
+    grad.addColorStop(1, "rgba(126,200,255,.02)");
+    ctx.beginPath();
+    hist.forEach((row, i) => { const x = xOf(i), y = yOf(row[6]); if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y); });
+    ctx.lineTo(xOf(hist.length - 1), h - padB);
+    ctx.lineTo(xOf(0), h - padB);
+    ctx.closePath();
+    ctx.fillStyle = grad;
+    ctx.fill();
+    ctx.beginPath();
+    ctx.strokeStyle = "#7ec8ff";
+    ctx.lineWidth = 1.7;
+    ctx.lineJoin = "round";
+    hist.forEach((row, i) => { const x = xOf(i), y = yOf(row[6]); if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y); });
+    ctx.stroke();
+  }
+
+  function drawCharts() {
+    if (!world) return;
+    drawLogChart();
+    drawRChart();
+  }
+
+  // ===================================================================
+  // 操作按钮与快捷键
+  // ===================================================================
+  function buildActionBar() {
+    const keys = S.EVENT_KEYS.slice(0, 6);
+    const labels = [0, 1, 2, 3, 4, 5].map(i => S.EVENT_LABEL[keys[i]]);
+    $("actionBar").innerHTML = `
+      <button class="act primary" data-k="adv">▶ 推进 1 天<span class="key">Space</span></button>
+      <button class="act" data-k="auto">⏩ 自动推进<span class="key">A</span></button>
+      <button class="act" data-k="evo">🧬 进化 <span class="key">O</span></button>
+      <button class="act" data-k="eve">🎲 随机事件<span class="key">E</span></button>
+      <div class="evgroup">
+        ${labels.map((l, i) => `<span class="evtag" data-k="ev${i + 1}" title="手动触发：${l}"><b>${i + 1}</b> ${l}</span>`).join("")}
+      </div>
+      <button class="act" data-k="country">🔍 国家<span class="key">I</span></button>
+      <button class="act" data-k="who">🏛 WHO<span class="key">W</span></button>
+      <button class="act" data-k="research">🔬 研发<span class="key">R</span></button>
+      <button class="act" data-k="points">💰 点数<span class="key">D</span></button>
+      <button class="act" data-k="news">📰 新闻<span class="key">N</span></button>
+      <button class="act" data-k="csv">💾 导出 CSV</button>
+      <button class="act warn" data-k="newgame">🔄 新游戏</button>`;
+    $("actionBar").querySelectorAll("[data-k]").forEach(b => {
+      b.onclick = () => dispatch(b.dataset.k);
+    });
+  }
+
+  let toggling = false;
+  function dispatch(k) {
+    if (!world) return;
+    switch (k) {
+      case "adv": stepOnce(); break;
+      case "auto": toggleAuto(); break;
+      case "evo": openEvo(); break;
+      case "eve": world.events.triggerRandom(world.day); flushEnd(); break;
+      case "ev1": world.events.trigger(S.EVENT_KEYS[0], world.day); flushEnd(); break;
+      case "ev2": world.events.trigger(S.EVENT_KEYS[1], world.day); flushEnd(); break;
+      case "ev3": world.events.trigger(S.EVENT_KEYS[2], world.day); flushEnd(); break;
+      case "ev4": world.events.trigger(S.EVENT_KEYS[3], world.day); flushEnd(); break;
+      case "ev5": world.events.trigger(S.EVENT_KEYS[4], world.day); flushEnd(); break;
+      case "ev6": world.events.trigger(S.EVENT_KEYS[5], world.day); flushEnd(); break;
+      case "country": openCountry(); break;
+      case "who": openWho(); break;
+      case "research": openResearch(); break;
+      case "points": openPoints(); break;
+      case "news": openNews(); break;
+      case "csv": exportCSV(); break;
+      case "newgame": resetToWizard(); break;
+    }
+  }
+
+  function flushEnd() {
+    renderAll();
+    if (world.game_over) showGameOver();
+  }
+
+  function stepOnce() {
+    if (!world || world.game_over) return;
+    world.stepDay();
+    pauseReason = null;
+    renderAll();
+  }
+
+  const AUTO_PAUSE_MSGS = [];
+  function autoStep() {
+    if (!world || world.game_over) { toggleAuto(); return; }
+    const before = [world.who_level >= 3, world.research.done, world.variant_announced, !!world.game_over, world.lockedNations() >= 10];
+    world.stepDay();
+    const after = [world.who_level >= 3, world.research.done, world.variant_announced, !!world.game_over, world.lockedNations() >= 10];
+    let reason = null;
+    if (after[0] && !before[0]) reason = "WHO PHEIC 升级";
+    else if (after[1] && !before[1]) reason = "疫苗研发完成";
+    else if (after[2] && !before[2]) reason = "重大变异出现";
+    else if (after[3]) reason = "胜负判定";
+    else if (after[4] && !before[4]) reason = world.lockedNations() + " 国全面封锁";
+    pauseReason = null;
+    renderAll();
+    if (reason) {
+      pauseReason = reason;
+      $('#pauseBanner').textContent = reason;
+      $('#pauseBanner').style.display = "";
+      toggleAuto();
+    }
+  }
+
+  function toggleAuto() {
+    if (!world) return;
+    auto = !auto;
+    if (auto) {
+      autoTimer = setInterval(autoStep, 150);
+      pauseReason = null;
+    } else if (autoTimer) {
+      clearInterval(autoTimer);
+      autoTimer = null;
+    }
+    renderStatus();
+  }
+
+  // ---------------- 键盘 ----------------
+  document.addEventListener("keydown", e => {
+    if (!world) return;
+    const tag = document.activeElement && document.activeElement.tagName;
+    if (tag === "INPUT" || tag === "TEXTAREA") {
+      if (modalMode === "country") {
+        const id = document.activeElement.id;
+        if (id === "countryInput") {
+          const k = e.key;
+          if (k === "Backspace") { countryBuffer = countryBuffer.slice(0, -1); e.preventDefault(); renderCountryInput(); }
+          else if (k === "Enter" || k === "Escape") { closeModal(); }
+          else if (k.length === 1 && /[a-zA-Z0-9]/.test(k)) {
+            if (countryBuffer.length < 3) { countryBuffer = (countryBuffer + k.toUpperCase()).replace(/[^A-Z0-9]/g, ""); }
+            e.preventDefault(); renderCountryInput();
+          }
+        }
+      }
+      return;
+    }
+    if (modalMode) {
+      if (e.key === "Escape") { closeModal(); }
+      else if (modalMode === "evo") {
+        const bids = Object.keys(S.BRANCHES);
+        if (e.key === "ArrowUp") { evoSelection = (evoSelection - 1 + bids.length) % bids.length; openEvo(); }
+        else if (e.key === "ArrowDown") { evoSelection = (evoSelection + 1) % bids.length; openEvo(); }
+        else if (e.key === "+" || e.key === "=") { evoAct(bids[evoSelection], 1); }
+        else if (e.key === "-" || e.key === "_") { evoAct(bids[evoSelection], -1); }
+      }
+      return;
+    }
+    if (e.code === "Space") {
+      e.preventDefault();
+      if (document.activeElement && document.activeElement.tagName === "BUTTON") document.activeElement.blur();
+      stepOnce();
+    }
+    else if (e.key === "a" || e.key === "A") toggleAuto();
+    else if (e.key === "o" || e.key === "O") openEvo();
+    else if (e.key === "e" || e.key === "E") dispatch("eve");
+    else if (e.key >= "1" && e.key <= "6") dispatch("ev" + e.key);
+    else if (e.key === "i" || e.key === "I") openCountry();
+    else if (e.key === "w" || e.key === "W") openWho();
+    else if (e.key === "r" || e.key === "R") openResearch();
+    else if (e.key === "d" || e.key === "D") openPoints();
+    else if (e.key === "n" || e.key === "N") openNews();
+  });
+
+  // ===================================================================
+  // 弹窗
+  // ===================================================================
+  function openModal(html, mode) {
+    modalMode = mode || null;
+    $("modalRoot").innerHTML = `<div class="modal" id="modalBox"><div class="modal-box">${html}</div></div>`;
+    document.getElementById("modalBox").addEventListener("mousedown", e => { if (e.target.id === "modalBox") closeModal(); });
+  }
+  function closeModal() {
+    modalMode = null;
+    $("modalRoot").innerHTML = "";
+  }
+
+  // ---- 进化 ----
+  function evoAct(bid, dir) {
+    const box = document.querySelector("#modalBox .modal-box");
+    const st = box ? box.scrollTop : 0;
+    let ok, msg;
+    if (dir > 0) [ok, msg] = world.evolution.upgrade(bid, world);
+    else [ok, msg] = world.evolution.downgrade(bid, world);
+    if (!ok) world.logLine(world.day, "⚠ " + msg, "points");
+    openEvo();
+    const nb = document.querySelector("#modalBox .modal-box");
+    if (nb) nb.scrollTop = st;
+    renderStatus();
+  }
+  function openEvo() {
+    const evo = world.evolution;
+    const bids = Object.keys(S.BRANCHES);
+    const rows = bids.map((bid, i) => {
+      const b = S.BRANCHES[bid];
+      const lv = evo.levels[bid];
+      const price = evo.currentPrice(bid);
+      const conflicts = b.conflicts.length ? b.conflicts.map(c => S.BRANCHES[c].name).join("、") : "—";
+      const draw = b.drawback || "—";
+      return `<div class="evo-row${i === evoSelection ? " sel" : ""}" onclick="SIERD_UI.selEvo(${i})">
+        <div>
+          <div class="cat">${S.CATEGORY_CN[b.category]}</div>
+          <div class="nm">${b.name}</div>
+          <div class="lv">Lv ${lv} / 上限 ${b.level_cap}</div>
+        </div>
+        <div class="fx">${esc(b.effect_desc)}
+          ${b.drawback ? `<div class="dw">⚠ ${esc(b.drawback)}</div>` : ""}
+          <div style="color:var(--dim);font-size:11px">冲突：${esc(conflicts)}</div>
+        </div>
+        <div class="px">${fmt1(price)} 点</div>
+        <div class="btns">
+          <button onclick="SIERD_UI.evoAct('${bid}',1)">▲ 升级</button>
+          <button onclick="SIERD_UI.evoAct('${bid}',-1)">▼ 退化</button>
+        </div>
+      </div>`;
+    }).join("");
+    const debt = world.debt > 0 ? ` · 欠款 <span class="red">${fmt1(world.debt)}</span>（日息 ${(cfg.overdraft_interest * 100).toFixed(0)}/100 复利）` : "";
+    openModal(`<h2>🧬 进化面板<span class="x" onclick="SIERD_UI.close()">✕</span></h2>
+      <div style="font-size:12px;color:var(--dim);margin:-8px 0 12px;">每类最多 5 分支同时激活 · 互斥分支不可同开 · 升级价随等级上涨，退化返还上一级实付价</div>
+      ${rows}
+      <div class="evo-status">点数 <span class="gold">${fmt1(world.points)}</span>${debt}
+        <span style="float:right;color:var(--dim);font-size:12px;">↑↓ 选择 · +/- 升级/退化 · Esc 关闭</span>
+      </div>`, "evo");
+    if (evoSelection >= bids.length) evoSelection = bids.length - 1;
+  }
+  function selEvo(i) { evoSelection = i; openEvo(); }
+
+  // ---- 国家详情 ----
+  function renderCountryInput() {
+    if (modalMode !== "country") return;
+    const boxInner = document.querySelector("#modalBox .modal-box");
+    if (!boxInner) return;
+    const c = world.countries[countryBuffer] || null;
+    boxInner.innerHTML = countryInnerHTML(c);
+    const inp = boxInner.querySelector("input");
+    if (inp) { inp.focus(); inp.value = countryBuffer; }
+  }
+  function countryInnerHTML(c) {
+    const hint = `<div style="color:var(--dim);font-size:13px;padding:6px 2px;">输入国家代码（3 位，如 USA），自动显示详情 · 按 Esc 关闭</div>
+      <input id="countryInput" type="text" maxlength="3" style="width:120px;padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:rgba(0,0,0,.45);color:#fff;font-size:15px;outline:none;font-family:inherit;letter-spacing:.2em;text-transform:uppercase;" placeholder="USA">
+      <div style="margin-top:12px;color:var(--muted);font-size:12.5px;">快速：${["CHN", "USA", "IND", "GBR", "DEU", "JPN", "BRA", "ZAF"].map(x => `<a href="javascript:SIERD_UI.setCountry('${x}')" style="color:var(--gold);margin-right:8px;">${x}</a>`).join("")}</div>`;
+    if (!c) return `<h2>🔍 国家详情<span class="x" onclick="SIERD_UI.close()">✕</span></h2>${hint}`;
+    const betaParts = c.beta_trace.slice(0, 5).map(t => `${t[0]} ${(t[1] / 1e6).toFixed(1)}M×${t[2].toFixed(2)}`).join(" ");
+    const bordersClosed = Object.values(c.borders).filter(v => !v).length;
+    return `<h2>🔍 ${c.d.name_cn}（${c.iso3}）<span class="x" onclick="SIERD_UI.close()">✕</span></h2>
+      ${hint}
+      <div class="kv">
+        <div class="k">舱室 SEIRDQV</div>
+        <div class="v"><b>S ${fmt(c.S)}</b> · E ${fmt(c.E)} · <b class="red">I ${fmt(c.I)}</b> · Q ${fmt(c.Q)} · R ${fmt(c.R)} · D ${fmt(c.D)} · V ${fmt(c.V)}</div>
+        <div class="k">累计</div>
+        <div class="v">感染 <b>${fmt(c.cum_infected)}</b> · 检出 ${fmt(c.cum_detected)} · 疫苗 ${fmt(c.vaccinated_doses)} 剂</div>
+        <div class="k">传播 β</div>
+        <div class="v"><b>${c.beta.toFixed(4)}</b>（${esc(betaParts)}）</div>
+        <div class="k">ICU / 死亡</div>
+        <div class="v">占用 <b>${fmt(c.icu_occ)}</b>（ρ=${(c.icu_occ / Math.max(1, c.icu_beds_eff)).toFixed(2)}）· μ_eff ${c.mu_eff.toFixed(4)}</div>
+        <div class="k">有效 R</div>
+        <div class="v"><b class="${c.r_eff >= 1 ? "red" : "gold"}">${c.r_eff.toFixed(2)}</b></div>
+        <div class="k">检测 / 天气</div>
+        <div class="v">${fmt(c.test_volume)} 剂/日 · ${c.temp.toFixed(0)}°C · AH ${c.ah.toFixed(1)} · ${S.SEASON_LABEL[c.season] || c.season}</div>
+        <div class="k">场所 / 边境</div>
+        <div class="v">聚集 ${c.venues.gathering.mode} · 封锁 ${c.lockdown_days} 天 · 关闭口岸 ${bordersClosed} 条 · 遵从 ${(c.compliance * 100).toFixed(0)}%</div>
+      </div>`;
+  }
+  function setCountry(iso) { countryBuffer = iso; renderCountryInput(); }
+  function openCountry() {
+    countryBuffer = "";
+    openModal(countryInnerHTML(null), "country");
+    const inp = document.getElementById("countryInput");
+    if (inp) inp.focus();
+  }
+
+  // ---- WHO ----
+  function openWho() {
+    const w = world;
+    const cond = [
+      [`1 级：≥${cfg.who1_countries} 国本土传播`, w.who_level >= 1, true],
+      [`2 级：≥${cfg.who2_countries} 国跨 ${cfg.who2_continents} 洲`, w.who_level >= 2, true],
+      [`3 级 PHEIC：≥${cfg.who3_countries} 国且全球感染 ≥ ${fmt(cfg.who3_infected)}`, w.who_level >= 3, true],
+      [`4 级：全球感染 ≥ ${fmt(cfg.who4_infected)} 且死亡 ≥ ${fmt(cfg.who4_deaths)}`, w.who_level >= 4, true],
+    ];
+    let infectedCountries = 0;
+    const continents = new Set();
+    let totalInf = 0, totalDeaths = 0;
+    for (const c of Object.values(w.countries)) {
+      if (c.cum_infected >= 100) { infectedCountries++; continents.add(c.d.continent); }
+      totalInf += c.cum_infected; totalDeaths += c.cum_deaths;
+    }
+    const s = w.globalStats();
+    const rows = cond.map(([txt, on, _]) =>
+      `<div class="c ${on ? "on" : ""}">${on ? "✅" : "☐"} ${esc(txt)}</div>`).join("");
+    openModal(`<h2>🏛 WHO 预警等级<span class="x" onclick="SIERD_UI.close()">✕</span></h2>
+      <div class="kv">
+        <div class="k">当前等级</div><div class="v"><b class="${w.who_level >= 3 ? "red" : "gold"}">${w.who_level} 级</b></div>
+        <div class="k">传播国家</div><div class="v">${infectedCountries} 国（跨 ${continents.size} 洲）</div>
+        <div class="k">全球数据</div><div class="v">感染 ${fmt(totalInf)} · 死亡 ${fmt(totalDeaths)} · 有效R ${s.r0_live.toFixed(2)}</div>
+      </div>
+      <div class="who-cond">${rows}</div>
+      <div class="help-txt" style="font-size:12.5px">生效措施：1 级后入境检疫人次提升至 30 万/日；2 级全球研发合作提速 90 天；3 级再提速 90 天；4 级全球静态管理（所有国家聚集场所降至民生必需限值）。</div>`, "who");
+  }
+
+  // ---- 研发 ----
+  function openResearch() {
+    const r = world.research;
+    const success = r.stage < S.RESEARCH_STAGE_FAIL.length
+      ? ((1 - S.RESEARCH_STAGE_FAIL[r.stage]) * 100).toFixed(0) : "0";
+    const logs = r._logs.slice(-8).map(l => `<div style="padding:2px 0;color:var(--muted);font-size:12.5px;">${esc(l)}</div>`).join("");
+    openModal(`<h2>🔬 疫苗研发进度<span class="x" onclick="SIERD_UI.close()">✕</span></h2>
+      <div class="kv">
+        <div class="k">阶段</div><div class="v"><b>${r.stage_name}</b>（${r.unlocked ? "已解锁" : "未解锁（测序中）"}）</div>
+        <div class="k">进度</div><div class="v">${Math.round(r.progress_days)} / ${Math.round(r.total_days)} 天 · 阶段剩余 ${Math.round(r.remainingDays())} 天 · 总进度 ${(r.progressFrac() * 100).toFixed(1)}%</div>
+        <div class="k">成功率</div><div class="v">本阶段 ${success}%（BIO 2021 文献量级）· 失败 ${r.failures} 次 · ${r.stalled ? "已停滞" : "进行中"}</div>
+        <div class="k">失败回退</div><div class="v">临床前清零 / ⅠⅡ期退 20% / Ⅲ期退 50%</div>
+      </div>
+      <div style="margin-top:12px;border-top:1px dashed var(--line);padding-top:10px;">${logs || `<div style="color:var(--dim);font-size:12.5px;">（暂无事件记录）</div>`}</div>`, "research");
+  }
+
+  // ---- 点数 ----
+  function openPoints() {
+    const rows = world.ledger.slice(-18).map(([d, kind, amt, note]) =>
+      `<div class="row ${amt >= 0 ? "plus" : "minus"}">
+        <span class="d">D${d}</span>
+        <span class="amt">${amt >= 0 ? "+" : ""}${fmt1(amt)}</span>
+        <span class="note">${esc(kind)} · ${esc(note)}</span>
+      </div>`).join("");
+    openModal(`<h2>💰 点数明细<span class="x" onclick="SIERD_UI.close()">✕</span></h2>
+      <div class="kv">
+        <div class="k">基因点</div><div class="v"><b class="gold">${fmt1(world.points)}</b>（初始 ${world.initial_points}）</div>
+        <div class="k">欠款 / 对账</div><div class="v">欠款 ${fmt1(world.debt)} · 对账偏差 ${world.balanceCheck().toFixed(4)}</div>
+        <div class="k">收入来源</div><div class="v" style="font-size:12.5px">新增感染每 1 万 +${cfg.points_per_10k_new_infected} · 死亡每 1 千 +${cfg.points_per_1k_deaths} · 新国家 +${cfg.points_per_new_country} · 影响力每 10 点 +${cfg.points_per_10_influence}</div>
+      </div>
+      <div class="ledger-rows" style="margin-top:12px;border-top:1px dashed var(--line);padding-top:8px;">${rows}</div>`, "points");
+  }
+
+  // ---- 新闻 ----
+  function openNews() {
+    const layerMap = { 本地: "loc", 国内: "dom", 国际: "int" };
+    const rows = world.news.slice(-20).map(([d, layer, text]) =>
+      `<div class="n"><span class="d">D${d}</span><span class="layer ${layerMap[layer] || "int"}" style="color:${layer === "本地" ? "#ffd9d9" : layer === "国内" ? "#9fd8ff" : "var(--gold)"}">[${esc(layer)}]</span>${esc(text)}</div>`).join("");
+    openModal(`<h2>📰 新闻回顾<span class="x" onclick="SIERD_UI.close()">✕</span></h2>
+      <div class="news-list">${rows || `<div style="color:var(--dim)">（暂无新闻）</div>`}</div>`, "news");
+  }
+
+  // ---- 结算 ----
+  function showGameOver() {
+    if (!world || !world.game_over) return;
+    const s = world.globalStats();
+    let totalPop = 0;
+    for (const c of Object.values(world.countries)) totalPop += c.pop;
+    const win = world.game_over === "win";
+    const actives = world.evolution.activeBranches();
+    const evoTxt = actives.length
+      ? actives.map(b => `${S.BRANCHES[b].name} Lv${world.evolution.levels[b]}`).join("、") : "无";
+    const top = Object.values(world.countries).sort((a, b) => b.cum_infected - a.cum_infected).slice(0, 5);
+    const topTxt = top.filter(c => c.cum_infected >= 1).map(c => `${c.iso3} ${fmt(c.cum_infected)}例`).join("　");
+    openModal(`<div class="gameover-box">
+      <div class="go-title ${win ? "win" : "lose"}">${win ? "🏆 病原体胜利" : "☠ 人类获胜，病原体被消灭"}</div>
+      <div class="go-stats">
+        结局：<b>${win ? "病原体胜利" : "病原体失败（被消灭）"}</b> · Day <b>${world.day}</b> · 难度 <b>${S.DIFFICULTY_CN[cfg.difficulty]}</b> · 种子 <b>${world.seed}</b><br>
+        全球感染 <b>${fmt(s.cum)}</b>（${(s.cum / totalPop * 100).toFixed(1)}%）· 死亡 <b>${fmt(s.deaths)}</b>（${(s.deaths / totalPop * 100).toFixed(1)}%）· 有效R <b>${s.r0_live.toFixed(2)}</b><br>
+        基因点 <b>${fmt1(world.points)}</b> · WHO ${world.who_level} 级 · 疫苗${world.research.done ? "已投产" : "未完成"} · 抗原距离 ${world.antigen_distance.toFixed(2)}<br>
+        进化：<b>${esc(evoTxt)}</b><br>
+        重灾区：${esc(topTxt)}
+      </div>
+      <button class="btn btn-primary" onclick="SIERD_UI.close();SIERD_UI.restartSame()">🔄 再来一局</button>
+      <button class="btn btn-ghost" style="margin-left:10px" onclick="SIERD_UI.close();SIERD_UI.resetToWizard()">开局向导</button>
+    </div>`, "gameover");
+    if (autoTimer) toggleAuto();
+  }
+
+  function restartSame() {
+    if (!world) return;
+    const c = S.cityLibrary()[world.city.name_cn];
+    startGame(cfg.difficulty, world.pathogen.key, c);
+  }
+
+  function resetToWizard() {
+    if (autoTimer) toggleAuto();
+    world = null;
+    closeModal();
+    $("game").classList.add("hidden");
+    $("wizard").classList.remove("hidden");
+    window.scrollTo({ top: 0 });
+  }
+
+  // ---- CSV 导出 ----
+  function exportCSV() {
+    if (!world) return;
+    const head = "day,cum,active,recovered,deaths,new,r0,antigen,points\n";
+    const body = world.global_history.map(r => r.join(",")).join("\n");
+    const blob = new Blob(["\ufeff" + head + body], { type: "text/csv;charset=utf-8" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = `sierd_seed${world.seed}_day${world.day}.csv`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+  }
+
+  // ---- 机制说明 ----
+  $("btnHelp").onclick = openHelp;
+  function openHelp() {
+    openModal(`<h2>📖 机制说明<span class="x" onclick="SIERD_UI.close()">✕</span></h2>
+      <div class="help-txt">
+        <h4>SEIRD 模型</h4>
+        每个国家分舱：易感 S → 潜伏 E → 感染 I → 恢复 R / 死亡 D，外加隔离 Q 与疫苗免疫 V。每日按
+        <span class="formula">新感染 = (β·I + β_Q·Q) · S/N</span>
+        积分推进（每日 4 个子步；β_Q 为隔离者经家庭通道的泄漏传播）。
+        <h4>场所状态机与传播</h4>
+        β = Σₖ (cₖ/N)·p_trans·survₖ，cₖ 为各场所当日接触人次（家庭/工作/学校/社区/聚集），
+        受封锁状态（正常/半运营/关闭）与遵从度影响；survₖ 由绝对湿度 → 气溶胶半衰期 → τ/(τ+t) 物理涌现。
+        <h4>死亡与 ICU</h4>
+        死亡经 Erlang 延迟队列（无当日死亡）；ICU 占用率 ρ 超额死亡按数据点插值（ρ=1.0 → ×1.5，ρ=2.0 → ×3.5）。
+        <h4>检测与疫苗</h4>
+        症状驱动检测（只检有症状者，测序确认前灵敏度极低 → 检测隔离解锁）；疫苗研发为 5 阶段流程模型，
+        失败按阶段回退，3 次失败停滞；量产先覆盖老年人群。
+        <h4>变异与进化</h4>
+        抗原距离随机游走，显著漂移后现有疫苗 VE 按 2^(−d/30) 衰减、免疫者复感；进化面板 3 类 × 5 分支，
+        效果全部为机制参数绝对量（接触概率、死亡率、潜伏天数、人次通道等）。
+        <h4>点数经济</h4>
+        新增感染/死亡/新国家/影响力产生基因点；进化升级消耗点数；欠款（允许透支难度）按日息 5/100 复利，
+        连续 3 天未还随机退化分支。
+        <h4>WHO 与胜负</h4>
+        1 级本土传播 → 2 级跨洲 → 3 级 PHEIC → 4 级全球静态管理；胜利 = 累计感染 ≥ 99% 全球人口，
+        失败 = 全球活跃感染（E+I+Q）清零。
+        <h4>操作</h4>
+        <b>Space</b> 推进 1 天 · <b>A</b> 自动推进 · <b>O</b> 进化 · <b>E</b> 随机事件 · <b>1-6</b> 指定事件 ·
+        <b>I</b> 国家详情 · <b>W</b> WHO · <b>R</b> 研发 · <b>D</b> 点数 · <b>N</b> 新闻 · <b>Esc</b> 关闭弹窗
+      </div>
+      <button class="btn btn-ghost m-close" onclick="SIERD_UI.close()">知道了</button>`, "help");
+  }
+
+  // ---------------- 对外（内联 onclick 使用） ----------------
+  window.SIERD_UI = {
+    close: closeModal,
+    selEvo, evoAct, setCountry, restartSame, resetToWizard,
+  };
+
+  // ===================================================================
+  // 启动
+  // ===================================================================
+  window.addEventListener("resize", () => { if (world && !modalMode) drawCharts(); });
+  initWizard();
+  renderAll();
+})();
+</script>
+</body>
+</html>

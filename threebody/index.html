@@ -6,6 +6,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>三体运动计算器 · LCXWS</title>
 <meta name="description" content="RK4 自适应步长三体运动实时模拟器——随机混沌、8 字周期、拉格朗日三角。">
+<script>
+  /* 主题预置：在首帧绘制前恢复主题，避免进入页面时亮/暗闪屏（FOUC） */
+  (function(){var r=document.documentElement;function a(){var h=new Date().getHours();return (h>=22||h<4)?'night':'day';}var s=null;try{s=localStorage.getItem('lcxwsTheme');}catch(e){}r.setAttribute('data-theme',s||a());})();
+</script>
 
 <style>
   :root{
@@ -17,6 +21,9 @@
   }
   *{margin:0;padding:0;box-sizing:border-box;}
   html,body{height:100%;}
+  /* 让浏览器首帧画布与导航过渡直接使用主题底色，避免白屏一闪 */
+  html{background:#EDF1FA;color-scheme:light;}
+  html[data-theme="night"]{background:#070C22;color-scheme:dark;}
   body{
     font-family:'Segoe UI','Noto Sans SC','Microsoft YaHei',system-ui,sans-serif;
     background:#EDF1FA;color:var(--ink);
@@ -25,7 +32,8 @@
   }
   a{color:inherit;text-decoration:none;}
 
-  .fx{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;}
+  .fx{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;
+    transform:translateZ(0);}
   .grid-lines{position:absolute;inset:0;opacity:.5;
     background:
       linear-gradient(rgba(43,64,160,.055) 1px,transparent 1px),
@@ -33,7 +41,8 @@
     background-size:52px 52px;
     -webkit-mask-image:radial-gradient(circle at 50% 32%,#000 0%,transparent 80%);
             mask-image:radial-gradient(circle at 50% 32%,#000 0%,transparent 80%);}
-  .cloud{position:absolute;border-radius:50%;filter:blur(70px);will-change:transform;}
+  .cloud{position:absolute;border-radius:50%;filter:blur(70px);will-change:transform;
+    transform:translateZ(0);backface-visibility:hidden;}
   .cloud.c1{width:640px;height:420px;left:-140px;top:-120px;
     background:radial-gradient(closest-side,rgba(154,178,255,.75),rgba(154,178,255,0));
     animation:drift1 17s ease-in-out infinite alternate;}
@@ -50,7 +59,8 @@
   .topbar{position:fixed;top:0;left:0;right:0;z-index:50;height:66px;
     display:flex;align-items:center;justify-content:space-between;padding:0 clamp(18px,4vw,44px);
     background:rgba(244,247,253,.62);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
-    border-bottom:1px solid rgba(255,255,255,.7);}
+    border-bottom:1px solid rgba(255,255,255,.7);
+    transform:translateZ(0);}
   .brand{display:flex;align-items:center;gap:11px;font-weight:800;font-size:19px;color:var(--navy);letter-spacing:.02em;}
   .brand .logo{width:34px;height:34px;border-radius:50%;
     background:radial-gradient(circle at 30% 30%,#7d9bff,#2a3cc0);
@@ -227,11 +237,6 @@
 </head>
 
 <body>
-
-<script>
-  (function(){var r=document.documentElement;function a(){var h=new Date().getHours();return (h>=22||h<4)?'night':'day';}var s=null;try{s=localStorage.getItem('lcxwsTheme');}catch(e){}r.setAttribute('data-theme',s||a());})();
-
-</script>
 
 <div class="fx" aria-hidden="true">
   <div class="grid-lines"></div>
