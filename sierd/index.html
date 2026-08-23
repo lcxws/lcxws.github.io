@@ -510,10 +510,10 @@
   // 向导
   // ===================================================================
   const DIFF_DESC = {
-    easy: "初始 112 点 · 收入加成 +5 · 允许透支 · 研发周期 365-730 天 · 政府响应延迟 ×2.0",
-    normal: "初始 75 点 · 无加成 · 允许透支 · 研发周期 180-365 天 · 响应延迟 ×1.0",
-    hard: "初始 60 点 · 收入加成 −2 · 禁止透支 · 研发周期 120-240 天 · 响应延迟 ×0.5",
-    realistic: "初始 7 点 · 收入 +1 · 禁止透支 · 研发周期 90-180 天 · 响应延迟 ×0.3",
+    easy: "初始 112 点 · 收入加成 +5 · 允许透支 · 研发周期 365-730 天 · 响应延迟 ×2.0 · 收益衰减底数 1.05",
+    normal: "初始 75 点 · 无加成 · 允许透支 · 研发周期 180-365 天 · 响应延迟 ×1.0 · 收益衰减底数 1.10",
+    hard: "初始 60 点 · 收入加成 −2 · 禁止透支 · 研发周期 120-240 天 · 响应延迟 ×0.5 · 收益衰减底数 1.15",
+    realistic: "初始 7 点 · 收入 +1 · 禁止透支 · 研发周期 90-180 天 · 响应延迟 ×0.3 · 收益衰减底数 1.25",
   };
 
   function buildDiffGrid() {
@@ -1214,7 +1214,8 @@
       <div class="kv">
         <div class="k">基因点</div><div class="v"><b class="gold">${fmt1(world.points)}</b>（初始 ${world.initial_points}）</div>
         <div class="k">欠款 / 对账</div><div class="v">欠款 ${fmt1(world.debt)} · 对账偏差 ${world.balanceCheck().toFixed(4)}</div>
-        <div class="k">收入来源</div><div class="v" style="font-size:12.5px">新增感染每 1 万 +${cfg.points_per_10k_new_infected} · 死亡每 1 千 +${cfg.points_per_1k_deaths} · 新国家 +${cfg.points_per_new_country} · 影响力每 10 点 +${cfg.points_per_10_influence}</div>
+        <div class="k">收入来源</div><div class="v" style="font-size:12.5px">新增感染每 1 万 +${cfg.points_per_10k_new_infected} · 死亡每 1 千 +${cfg.points_per_1k_deaths} · 新国家 +${cfg.points_per_new_country} · 影响力每 10 点 +${cfg.points_per_10_influence}
+          <span style="color:var(--gold)">（感染/死亡路径按难度指数衰减，底数 a=${S.DIFFICULTY[cfg.difficulty].gain_decay_a.toFixed(2)}）</span></div>
       </div>
       <div class="ledger-rows" style="margin-top:12px;border-top:1px dashed var(--line);padding-top:8px;">${rows}</div>`, "points");
   }
@@ -1303,9 +1304,11 @@
         <h4>变异与进化</h4>
         抗原距离随机游走，显著漂移后现有疫苗 VE 按 2^(−d/30) 衰减、免疫者复感；进化面板 3 类 × 5 分支，
         效果全部为机制参数绝对量（接触概率、死亡率、潜伏天数、人次通道等）。
+        「有益变异」随机事件按<b>正常升级价消耗基因点</b>逐级强化，点数不足时变异失败（与点数经济联动）。
         <h4>点数经济</h4>
         新增感染/死亡/新国家/影响力产生基因点；进化升级消耗点数；欠款（允许透支难度）按日息 5/100 复利，
-        连续 3 天未还随机退化分支。
+        连续 3 天未还随机退化分支。<b>感染/死亡路径的收入按难度指数衰减</b>（当日量级越大收入越少，
+        难度越高收紧越快），防止大疫情后期点数通胀。
         <h4>WHO 与胜负</h4>
         1 级本土传播 → 2 级跨洲 → 3 级 PHEIC → 4 级全球静态管理；胜利 = 累计感染 ≥ 99% 全球人口，
         失败 = 全球活跃感染（E+I+Q）清零。

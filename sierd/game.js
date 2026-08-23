@@ -80,10 +80,10 @@
 
   // 难度参数表
   const DIFFICULTY = {
-    easy:      { points: 112, gain_bonus: 5,  overdraft: true,  research_days: [365, 730], delay_scale: 2.0 },
-    normal:    { points: 75,  gain_bonus: 0,  overdraft: true,  research_days: [180, 365], delay_scale: 1.0 },
-    hard:      { points: 60,  gain_bonus: -2, overdraft: false, research_days: [120, 240], delay_scale: 0.5 },
-    realistic: { points: 7,   gain_bonus: 1,  overdraft: false, research_days: [90, 180],  delay_scale: 0.3 },
+    easy:      { points: 112, gain_bonus: 5,  overdraft: true,  research_days: [365, 730], delay_scale: 2.0, gain_decay_a: 1.05 },
+    normal:    { points: 75,  gain_bonus: 0,  overdraft: true,  research_days: [180, 365], delay_scale: 1.0, gain_decay_a: 1.10 },
+    hard:      { points: 60,  gain_bonus: -2, overdraft: false, research_days: [120, 240], delay_scale: 0.5, gain_decay_a: 1.15 },
+    realistic: { points: 7,   gain_bonus: 1,  overdraft: false, research_days: [90, 180],  delay_scale: 0.3, gain_decay_a: 1.25 },
   };
   const DIFFICULTY_CN = { easy: "简单", normal: "正常", hard: "困难", realistic: "现实" };
   const ROUTE_CN = { airborne: "空气", droplet: "飞沫", contact: "接触", water: "水媒", vector: "媒介" };
@@ -959,9 +959,17 @@
       if (!legal.length) return this._log("🧬 变异尝试：当前无可强化分支（冲突/上限限制）", day);
       const bid = this.rng.choice(legal);
       const gains = this.rng.random() < 0.4 ? 2 : 1;
-      evo.levels[bid] = Math.min(BRANCHES[bid].level_cap, evo.levels[bid] + gains);
-      evo.applyTo(this.world);
-      return this._log(`🧬 有益变异：${BRANCHES[bid].name} +${gains} 级`, day);
+      const price0 = evo.currentPrice(bid);
+      let granted = 0;
+      for (let i = 0; i < gains; i++) {      // 逐级走正常升级（扣点、记账、重算）
+        const [ok] = evo.upgrade(bid, this.world);
+        if (!ok) break;
+        granted += 1;
+      }
+      if (granted === 0) {
+        return this._log(`🧬 有益变异失败：${BRANCHES[bid].name} 基因点不足（需约 ${price0.toFixed(0)} 点）`, day);
+      }
+      return this._log(`🧬 有益变异：${BRANCHES[bid].name} +${granted} 级（消耗 ${price0.toFixed(0)} 点起）`, day);
     }
     _gathering(day) {
       const c = this._pickCountry();
@@ -1523,12 +1531,15 @@
       const cfg = this.cfg;
       const diff = DIFFICULTY[cfg.difficulty];
       const bonus = diff.gain_bonus;
+      const a = diff.gain_decay_a;   // 指数衰减底数：该路径当日发生量越大，收入越少（防后期点数通胀）
       let gain = 0.0;
       const newInf = this._daily_new;
-      gain += (newInf / 10000.0) * cfg.points_per_10k_new_infected;
+      const xNew = newInf / 10000.0; // x：新增感染（万）
+      gain += (newInf / 10000.0) * cfg.points_per_10k_new_infected * Math.pow(1.0 / a, xNew);
       if (newInf > 0) gain += bonus;
       const deaths = this._daily_deaths_delta;
-      gain += (deaths / 1000.0) * cfg.points_per_1k_deaths;
+      const xD = deaths / 1000.0;    // x：新增死亡（千）
+      gain += (deaths / 1000.0) * cfg.points_per_1k_deaths * Math.pow(1.0 / a, xD);
       if (deaths > 0) gain += bonus;
       let newCountries = 0;
       for (const c of Object.values(this.countries)) {
